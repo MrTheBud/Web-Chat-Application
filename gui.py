@@ -1,4 +1,4 @@
-# Made By: Kevin Perez
+# Made By: Kevin Perez, Alex Islas
 import tkinter as tk
 from tkinter import scrolledtext, filedialog
 import os

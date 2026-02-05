@@ -1,0 +1,3 @@
+# Requirement installs for the project
+
+pip install websockets pyftpdlib

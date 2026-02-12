@@ -1,3 +1,13 @@
 # Requirement installs for the project
 
-pip install websockets pyftpdlib
+pip install websockets # Minimal library, Handles all protocols, built on pythons asyncio framework.
+pip install websocket-client # A simple WebSocket client for Python, built on top of the standard library's socket module.
+
+
+# NOTES:
+# for internet connection
+# ngrok to just show current demo
+# For final app, use a Cloud Server
+#     - Cloud Server: AWS, Azure, Google Cloud, DigitalOcean, Heroku, etc.
+#     - DigitalOcean has $200 free credit for students. =~ 2 months of free hosting for a small app.
+# 

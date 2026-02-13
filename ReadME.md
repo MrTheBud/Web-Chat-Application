@@ -34,48 +34,48 @@ For a Windows 11 OS with the goal being to run two clients on the same device, f
       
          python --version
 
-  **INSERT IMAGE HERE**
+  ![Screenshot of Step](1.jpg)
 
 2. Power on Visual Studio and open up a Project labled "Project 1 - Client-Server Communication using Web Sockets"
 
-  **INSERT IMAGE HERE**
+
 
 3. Move Server.py, Client.py, cert.pem, and key.pem into the folder containing the project. Open both Server.py and Client.py
 
-  **INSERT IMAGE HERE**
-
-  **INSERT IMAGE HERE**
+  ![Screenshot of Step](2.jpg)
 
 4. Install Required Python Libraries
 
-    * View tab on top of Visual Studio (VS) labeled "Terminal"
+    * Click on the "View" tab on top of Visual Studio (VS) and then press the option labeled "Terminal"
     * Make sure that terinal has correct path:
 
-  **INSERT IMAGE HERE**
+  ![Screenshot of Step](3.jpg)
+
+  ![Screenshot of Step](4.jpg)
 
  * Type into the terminal the following command and press Enter
 
          py -m pip install websockets
 
-  **INSERT IMAGE HERE**
+  ![Screenshot of Step](5.jpg)
 
  * Type into the terminal the following command and press Enter
 
-         py -m pip install websocket-client”
+         py -m pip install websocket-client
 
-  **INSERT IMAGE HERE**
+  ![Screenshot of Step](6.jpg)
 
 5. Run Server.py by typing into the terminal and pressing Enter the following command:
 
          py server.py
 
-  **INSERT IMAGE HERE**
+  ![Screenshot of Step](7.jpg)
 
 6. Check your IP Address by openning Command Prompt and typing in the following command:
 
          ipconfig
 
-  **INSERT IMAGE HERE**
+  ![Screenshot of Step](8.jpg)
 
 7. Change to Client.py and input the IP Address into "Host = [insert IP Address here]"
 
@@ -85,33 +85,31 @@ For a Windows 11 OS with the goal being to run two clients on the same device, f
 
          * "Host = 127.0.0.1"
   
-  **INSERT IMAGE HERE**
+  ![Screenshot of Step](9.jpg)
 
 8. Run Client.py in a new terminal
 
-* At the top of the VS Terminal, press the "+" to open up another terminal
+* At the top of the VS Terminal, press the "+ Developer Powershell" button to open up another terminal
   
-  **INSERT IMAGE HERE**
-
 * Start the file by typing the following code into the terminal and pressing enter:
 
          py client.py
 
-  **INSERT IMAGE HERE**
+  ![Screenshot of Step](10.jpg)
  
 9. Register a User (for the first time you run the client on the server)
 
 * Press "R", and then input a username and password
 * Will be logged out once registered, so press "connect" to continue
         
-  **INSERT IMAGE HERE**
-
+  ![Screenshot of Step](11.jpg)
+  
 10) Login as User:
 
       * Press "L", and then input username and password
       * Once logged in, you will be able to send messages
 
-  **INSERT IMAGE HERE**
+  ![Screenshot of Step](12.jpg)
    
 11. Run Client.py in a new terminal to create a second user
 
@@ -122,11 +120,11 @@ For a Windows 11 OS with the goal being to run two clients on the same device, f
       
 * Repeat steps 10 - 11 for a second client using the third terminal
 
-  **INSERT IMAGE HERE**
+  ![Screenshot of Step](13.jpg)
 
 12. Enjoy the connection: typing in either will have the message reach the other
 
-  **INSERT IMAGE HERE**
+  ![Screenshot of Step](14.jpg)
 
 ## Customization 🔍
 
@@ -136,10 +134,10 @@ How do you change connect two people who are on the same network, with one perso
  
 ## Technical Details 📃
 
-* OS Types: Windows 11 and Tuffix 2022
+* OS Types: Windows 11 and Tuffix 2022 (for Linux based testing)
 * Python version: 3.9.13
-* Websockets: 
-* Websockets clients: 
+* Websockets: 15.0.1
+* Websockets clients: 1.9.0
 * Visual Studio [Version: VS 2022 (x64) Version 17.14.26 for demo]
 
 

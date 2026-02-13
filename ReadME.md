@@ -1,6 +1,6 @@
 # Project 1 - Client-Server Communication using Web Sockets
 
-A real-time communication tool that is developed in Python, called <b>SecureChat<b>, that allows remote teams to communicate in a secure and efficient communication. 
+A real-time communication tool that is developed in Python, called <b>SecureChat</b>, that allows remote teams to communicate in a secure and efficient communication. 
 
 ## Developers
 
@@ -30,40 +30,40 @@ For a Windows 11 OS with the goal being to run two clients on the same device, f
     - If do not have Python, download from https://python.org/
     - To verify, open Command Prompt and run either of the following commands "py --version" or "python --version"
   
-  <b>INSERT IMAGE HERE<b>
+  <b>INSERT IMAGE HERE</b>
 
 2) Power on Visual Studio and open up a Project labled "Project 1 - Client-Server Communication using Web Sockets"
 
-  <b>INSERT IMAGE HERE<b>
+  <b>INSERT IMAGE HERE</b>
 
 3) Move Server.py, Client.py, cert.pem, and key.pem into the folder containing the project. Open both Server.py and Client.py
 
-  <b>INSERT IMAGE HERE<b>
+  <b>INSERT IMAGE HERE</b>
 
-  <b>INSERT IMAGE HERE<b>
+  <b>INSERT IMAGE HERE</b>
 
 4) Install Required Python Libraries
 
     - View tab on top of Visual Studio (VS) labeled "Terminal"
     - Make sure that terinal has correct path:
 
-  <b>INSERT IMAGE HERE<b>
+  <b>INSERT IMAGE HERE</b>
 
     - Type into the terminal: "py -m pip install websockets” and press Enter
 
-  <b>INSERT IMAGE HERE<b>
+  <b>INSERT IMAGE HERE</b>
 
      - Type into the terminal: "py -m pip install websocket-client” and press Enter
 
-  <b>INSERT IMAGE HERE<b>
+  <b>INSERT IMAGE HERE</b>
 
 5) Run Server.py by typing into the terminal: "py server.py"
 
-  <b>INSERT IMAGE HERE<b>
+  <b>INSERT IMAGE HERE</b>
 
 6) Check your IP Address by openning Command Prompt and typing in: ipconfig
 
-  <b>INSERT IMAGE HERE<b>
+  <b>INSERT IMAGE HERE</b>
 
 7) Change to Client.py and input the IP Address into "Host = [insert IP Address here]"
 
@@ -73,29 +73,31 @@ For a Windows 11 OS with the goal being to run two clients on the same device, f
 
       -     - "Host = 127.0.0.1"
   
-  <b>INSERT IMAGE HERE<b>
+  <b>INSERT IMAGE HERE</b>
 
 9) Run Client.py in a new terminal
 
       - At the top of the VS Terminal, press the "+" to open up another terminal
   
-   <b>INSERT IMAGE HERE<b>
+   <b>INSERT IMAGE HERE</b>
 
       - Type the following code: "py client.py"
 
-  <b>INSERT IMAGE HERE<b>
+  <b>INSERT IMAGE HERE</b>
  
 10) Register a User (for the first time you run the client on the server)
 
       - Press "R", and then input a username and password
       - Will be logged out once registered, so press "connect" to continue
         
-  <b>INSERT IMAGE HERE<b>
+  <b>INSERT IMAGE HERE</b>
 
 11) Login as User:
 
       - Press "L", and then input username and password
       - Once logged in, you will be able to send messages
+
+  <b>INSERT IMAGE HERE</b>
    
 12) Run Client.py in a new terminal to create a second user
 
@@ -103,7 +105,11 @@ For a Windows 11 OS with the goal being to run two clients on the same device, f
       - Type in the following code: "py client.py"
       - Repeat steps 10 - 11 for a second client using the third terminal
 
-13) Enjoy the connection: typing in either will have the message reach the other 
+  <b>INSERT IMAGE HERE</b>
+
+13) Enjoy the connection: typing in either will have the message reach the other
+
+  <b>INSERT IMAGE HERE</b>
 
 ## Customization 
 

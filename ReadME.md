@@ -13,7 +13,7 @@ A real-time communication tool that is developed in Python, called **SecureChat*
 
 ## What it does 🔨
 
-- A client-server WebSocket-based chat system enables team members to communicate in real time. To accomplish this, the requirement are as follows:
+- A client-server WebSocket-based chat system enables team members to communicate in real time. To accomplish this, the requirements are as follows:
 
 1. Real-Time Messaging - messages instantly appear
 2. Secure Conenction - wss://

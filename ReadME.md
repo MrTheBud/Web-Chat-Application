@@ -122,7 +122,7 @@ For a Windows 11 OS with the goal being to run two clients on the same device, f
       
 * Repeat steps 10 - 11 for a second client using the third terminal
 
-  ![Screenshot of Step](13.jpg)
+  ![Screenshot of Step](12.jpg)
 
 12. Enjoy the connection: typing in either will have the message reach the other
 

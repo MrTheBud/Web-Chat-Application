@@ -100,6 +100,9 @@ For a Windows 11 OS with the goal being to run two clients on the same device, f
 9. Register a User (for the first time you run the client on the server)
 
 * Press "R", and then input a username and password
+* Password Must contain
+* 15 Characters TOTAL
+* Min 1 uppercase letter, 1 lowercase letter, 1 number, and 1 special character
         
   ![Screenshot of Step](11.jpg)
   

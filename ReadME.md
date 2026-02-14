@@ -126,7 +126,7 @@ For a Windows 11 OS with the goal being to run two clients on the same device, f
 
 12. Enjoy the connection: typing in either will have the message reach the other
 
-  ![Screenshot of Step](14.jpg)
+  ![Screenshot of Step](13.jpg)
 
 ## Customization 🔍
 

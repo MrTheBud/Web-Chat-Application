@@ -100,7 +100,6 @@ For a Windows 11 OS with the goal being to run two clients on the same device, f
 9. Register a User (for the first time you run the client on the server)
 
 * Press "R", and then input a username and password
-* Will be logged out once registered, so press "connect" to continue
         
   ![Screenshot of Step](11.jpg)
   
@@ -134,10 +133,10 @@ How do you change connect two people who are on the same network, with one perso
  
 ## Technical Details 📃
 
-* OS Types: Windows 11 and Tuffix 2022 (for Linux based testing)
-* Python version: 3.9.13
+* OS Types: Windows 11 and Linux 2022 (for Linux based testing)
+* Python version: 3.9.13 and beyond
 * Websockets: 15.0.1
 * Websockets clients: 1.9.0
-* Visual Studio [Version: VS 2022 (x64) Version 17.14.26 for demo]
+* Visual Studio [Version: VS 2022 (x64) Version 17.14.26 for demo] and Visual Studio Code
 
 

@@ -6,7 +6,7 @@ import ssl
 from websocket import WebSocketApp  # pip install websocket-client
 
 #IPv4 Only change needed to be made by client
-HOST = "192.168.110.1"
+HOST = "Insert IPv4 Here"
 PORT = 9999
 WSS_URL = f"wss://{HOST}:{PORT}"
 
@@ -187,3 +187,4 @@ ws_thread = threading.Thread(target=connect_to_server, daemon=True)
 ws_thread.start()
 
 root.mainloop()
+

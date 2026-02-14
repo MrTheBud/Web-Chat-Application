@@ -34,7 +34,7 @@ For a Windows 11 OS with the goal being to run two clients on the same device, f
       
          python --version
 
-  ![Screenshot of Step](1.jpg)
+  ![Screenshot of Step](images/1.jpg)
 
 2. Power on Visual Studio and open up a Project labled "Project 1 - Client-Server Communication using Web Sockets"
 
@@ -42,40 +42,40 @@ For a Windows 11 OS with the goal being to run two clients on the same device, f
 
 3. Move Server.py, Client.py, cert.pem, and key.pem into the folder containing the project. Open both Server.py and Client.py
 
-  ![Screenshot of Step](2.jpg)
+  ![Screenshot of Step](images/2.jpg)
 
 4. Install Required Python Libraries
 
     * Click on the "View" tab on top of Visual Studio (VS) and then press the option labeled "Terminal"
     * Make sure that terminal has correct path:
 
-  ![Screenshot of Step](3.jpg)
+  ![Screenshot of Step](images/3.jpg)
 
-  ![Screenshot of Step](4.jpg)
+  ![Screenshot of Step](images/4.jpg)
 
  * Type into the terminal the following command and press Enter
 
          py -m pip install websockets
 
-  ![Screenshot of Step](5.jpg)
+  ![Screenshot of Step](images/5.jpg)
 
  * Type into the terminal the following command and press Enter
 
          py -m pip install websocket-client
 
-  ![Screenshot of Step](6.jpg)
+  ![Screenshot of Step](images/6.jpg)
 
 5. Run Server.py by typing into the terminal and pressing Enter the following command:
 
          py server.py
 
-  ![Screenshot of Step](7.jpg)
+  ![Screenshot of Step](images/7.jpg)
 
 6. Check your IP Address by openning Command Prompt and typing in the following command:
 
          ipconfig
 
-  ![Screenshot of Step](8.jpg)
+  ![Screenshot of Step](images/8.jpg)
 
 7. Change to Client.py and input the IP Address into "Host = [insert IP Address here]"
 
@@ -85,7 +85,7 @@ For a Windows 11 OS with the goal being to run two clients on the same device, f
 
          * "Host = 127.0.0.1"
   
-  ![Screenshot of Step](9.jpg)
+  ![Screenshot of Step](images/9.jpg)
 
 8. Run Client.py in a new terminal
 
@@ -95,7 +95,7 @@ For a Windows 11 OS with the goal being to run two clients on the same device, f
 
          py client.py
 
-  ![Screenshot of Step](10.jpg)
+  ![Screenshot of Step](images/10.jpg)
  
 9. Register a User (for the first time you run the client on the server)
 
@@ -104,14 +104,14 @@ For a Windows 11 OS with the goal being to run two clients on the same device, f
          * 15 Characters TOTAL
          * Min 1 uppercase letter, 1 lowercase letter, 1 number, and 1 special character
         
-  ![Screenshot of Step](11.jpg)
+  ![Screenshot of Step](images/11.jpg)
   
 10) Login as User:
 
       * Press "L", and then input username and password
       * Once logged in, you will be able to send messages
 
-  ![Screenshot of Step](12.jpg)
+  ![Screenshot of Step](images/12.jpg)
    
 11. Run Client.py in a new terminal to create a second user
 
@@ -122,11 +122,11 @@ For a Windows 11 OS with the goal being to run two clients on the same device, f
       
 * Repeat steps 10 - 11 for a second client using the third terminal
 
-  ![Screenshot of Step](12.jpg)
+  ![Screenshot of Step](images/12.jpg)
 
 12. Enjoy the connection: typing in either will have the message reach the other
 
-  ![Screenshot of Step](13.jpg)
+  ![Screenshot of Step](images/13.jpg)
 
 ## Customization 🔍
 

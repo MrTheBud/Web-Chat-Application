@@ -47,7 +47,7 @@ For a Windows 11 OS with the goal being to run two clients on the same device, f
 4. Install Required Python Libraries
 
     * Click on the "View" tab on top of Visual Studio (VS) and then press the option labeled "Terminal"
-    * Make sure that terinal has correct path:
+    * Make sure that terminal has correct path:
 
   ![Screenshot of Step](3.jpg)
 

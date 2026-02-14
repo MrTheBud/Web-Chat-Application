@@ -100,9 +100,9 @@ For a Windows 11 OS with the goal being to run two clients on the same device, f
 9. Register a User (for the first time you run the client on the server)
 
 * Press "R", and then input a username and password
-* Password Must contain
-* 15 Characters TOTAL
-* Min 1 uppercase letter, 1 lowercase letter, 1 number, and 1 special character
+         * Password Must contain
+         * 15 Characters TOTAL
+         * Min 1 uppercase letter, 1 lowercase letter, 1 number, and 1 special character
         
   ![Screenshot of Step](11.jpg)
   
@@ -130,9 +130,14 @@ For a Windows 11 OS with the goal being to run two clients on the same device, f
 
 ## Customization 🔍
 
-How do you change it to try with one client and one VM
+* Another method that can used for the testing the communication is to run the second client on a VM
 
-How do you change connect two people who are on the same network, with one person being the host and giving their IP to the other client
+* Additionally, two users who are on the same network can connect using client.py and server.py by using the following process:
+
+1. One user would run server.py and client.py
+2. That user would share his IP address to another user who is on the same network as them
+3. This second user would then add that IP to the "Host = ..." section in client.py and run client.py
+4. If the regular process of creating a user and logging is done, communication will occur!
  
 ## Technical Details 📃
 

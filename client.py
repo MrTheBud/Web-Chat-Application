@@ -1,13 +1,19 @@
 #Made By: Kevin Perez, Alex Islas, Dino Rozac
+
+# NOTES: TO FIX: 
+# function update_sidebar() not showing users
+
 import time
 import tkinter as tk
+from tkinter import simpledialog, filedialog # For input dialogs, file selection, and message boxes
 import threading
 import ssl
 from websocket import WebSocketApp  # pip install websocket-client
+import base64
 
 #IPv4 Only change needed to be made by client
-HOST = "Insert IPv4 Here"
-PORT = 9999
+HOST = "localhost" # Change to server's IP address or use "localhost" for local testing
+PORT = 9999 # Must match the port used in server.py
 WSS_URL = f"wss://{HOST}:{PORT}"
 
 ping_int = 20
@@ -143,6 +149,79 @@ def close():
         pass
     root.destroy()
 
+#=========================================================================
+def switch_chat(target_name):
+    entry.delete(0, "end")
+    entry.insert(0, f"/msg {target_name} ")
+    entry.focus()
+    chat_insert(f"--- Private Chat with {target_name} ---")
+
+def on_message(ws, message):
+    msg = str(message)
+    print(f"DEBUG: Server sent -> {msg}") # Look at your terminal to see this!
+    
+    if msg.startswith("USERLIST:"):
+        raw_names = msg.replace("USERLIST:", "")
+        # If raw_names is empty, we get [''], so we filter that out
+        name_list = [n for n in raw_names.split(",") if n]
+        root.after(0, update_sidebar, name_list)
+    else: 
+        root.after(0, chat_insert, msg)
+
+def update_sidebar(names):
+    # Clear old buttons
+    for widget in sidebar.winfo_children(): 
+        if isinstance(widget, tk.Button):
+            widget.destroy()
+
+    # Re-create buttons
+    for name in names: 
+        btn = tk.Button(
+            sidebar,
+            text=name,
+            bg="gray25", 
+            fg="white",
+            font=("Arial", 10, "bold"),
+            command=lambda n=name: switch_chat(n)
+        )
+        btn.pack(fill="x", padx=5, pady=2)
+    
+    # Forces the GUI to redraw immediately
+    sidebar.update()
+
+# Emoji Picker Popup Logic
+def open_emoji_menu():
+    # Create a popup window (Toplevel)
+    emoji_window = tk.Toplevel(root)
+    emoji_window.title("Emojis")
+    emoji_window.geometry("150x200")
+    emoji_window.overrideredirect(True) # Removes window borders for a clean look
+    emoji_window.configure(bg="gray15")
+
+    # Position the popup right above the emoji button
+    x = emoji_btn.winfo_rootx()
+    y = emoji_btn.winfo_rooty() - 210
+    emoji_window.geometry(f"+{x}+{y}")
+
+    # List of Emojis
+    emojis = ["😀", "😂", "🚀", "🔥", "👍", "🔒", "✅", "👀", "💻", "💡"]
+    
+    # Grid them out inside the popup
+    r, c = 0, 0
+    for e in emojis:
+        ebtn = tk.Button(emoji_window, text=e, font=("Arial", 12), bg="gray25", fg="white", 
+                         relief="flat", command=lambda char=e: [entry.insert(tk.INSERT, char), emoji_window.destroy()])
+        ebtn.grid(row=r, column=c, padx=5, pady=5)
+        c += 1
+        if c > 2: # 3 emojis per row
+            c = 0; r += 1
+    
+    # Close popup if user clicks away
+    emoji_window.bind("<FocusOut>", lambda e: emoji_window.destroy())
+    emoji_window.focus_set()
+#=========================================================================
+
+
 #Gui
 root = tk.Tk()
 root.title("SecChat")
@@ -163,9 +242,17 @@ chat = tk.Text(
 chat.configure(state="disabled")
 chat.place(x=10, y=10, relwidth=0.60, relheight=0.80)
 
+# Entry box for message input
 entry = tk.Entry(root, font=("Times New Roman", 16), width=50, bg="gray15", fg="white", insertbackground="white")
-entry.place(relx=0.0, rely=1.0, anchor="sw", x=10, y=-10)
+entry.place(relx=0.0, rely=1.0, anchor="sw", x=60, y=-10, width=500, height=35) # Shift right to make room for emoji button
 
+#================================================================
+# Emoji Button
+emoji_btn = tk.Button(root, text="😀", font=("Arial" ,14), bg="gray15", fg="white", relief="flat", command=open_emoji_menu)
+emoji_btn.place(relx=0.0, rely=1.0, anchor="sw", x=10, y=-10, width=45, height=35)
+#=================================================================
+
+#Other Buttons
 send_btn = tk.Button(root, text="Send", padx=20, pady=10, bg="green", fg="black", command=send_message)
 send_btn.place(relx=1.0, rely=1.0, anchor="se", x=-275, y=-10)
 
@@ -181,10 +268,17 @@ disc_btn.place(relx=1.0, rely=1.0, anchor="se", x=-20, y=-60)
 conn_btn = tk.Button(root, text="Connect", padx=20, pady=10, bg="green", fg="black", command=start_connection)
 conn_btn.place(relx=1.0, rely=1.0, anchor="se", x=-135, y=-60)
 
+#==========================================================
+#Sidebar for active users
+sidebar = tk.Frame(root, width=150, bg="gray10")
+sidebar.place(relx=1.0, y=80, anchor="ne", width=180, height=350)
+
+tk.Label(sidebar, text="ONLINE USERS", bg="gray10", fg="green", font=("Arial", 12, "bold")).pack(pady=5)
+#===========================================================
+
 root.bind("<Return>", send_message)
 
 ws_thread = threading.Thread(target=connect_to_server, daemon=True)
 ws_thread.start()
 
 root.mainloop()
-

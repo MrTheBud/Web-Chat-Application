@@ -1,26 +1,66 @@
-#Made By: Kevin Perez, Alex Islas, Dino Rozac
 import asyncio
 import ssl
 import sqlite3
 import hashlib
 import websockets
 import os
+import time
+from datetime import datetime
 
-HOST = "0.0.0.0"
-PORT = 9999
+HOST = "localhost" # Change to server's IP address or use "localhost" for local testing
+PORT = 9999 # Must match the port used in client.py
 
-cert = "cert.pem"
+cert = "cert.pem" # Make sure to generate cert.pem and key.pem using openssl for secure communication.
 key = "key.pem"
 
-max_clients = 2
-login_attempts = 3
+max_clients = 10
+login_attempts = 5
 
 clients = set()
 clients_lock = asyncio.Lock()
 
+#===============
+active_users = {} # websocket -> username mapping for tracking who's who
+#===============
+
+SESSION_ID = datetime.now().strftime("%Y-%m-%d_%H-%M-%S") # Unique session ID for this server run, used in logs
+CURRENT_LOG_FILE = f"logs/session_{SESSION_ID}.txt" # Log file for this session
+
+#=====================+
+def setup_server_folders():
+    # Ensure logs directory exists for storing chat logs
+    if not os.path.exists("logs"):
+        os.makedirs("logs")
+
+    # Create a new log file for this session with a header
+    with open(CURRENT_LOG_FILE, "w", encoding="utf-8") as f:
+        f.write(f"Chat Session Started: {SESSION_ID}\n")
+
+async def write_to_log(username , message):
+    # Append messages to the current session log file with timestamps
+    timestamp = datetime.now().strftime("%H:%M:%S") # Log only the time for easier reading
+    with open(CURRENT_LOG_FILE, "a", encoding="utf-8") as f: # Open in append mode to add messages to the log
+        f.write(f"[{timestamp}] {username}: {message}\n")
+#=====================+
+
+#=============================
+async def broadcast_user_list(): # Dynamic user selection. Sends current name to everyone
+    async with clients_lock:
+        # Get all the user names that are authenticated and connected
+        names = [name for name in active_users.values()]
+        user_list_payload = "USERLIST:" + ",".join(names)
+
+        # Broadcast the user list to all clients
+        for ws in clients:
+            try:
+                await ws.send(user_list_payload)
+            except:
+                pass
+#===============================
 
 def hash_pw(pw: str) -> str:
     return hashlib.sha256(pw.encode()).hexdigest()
+
 #Stronger Password Requirements
 def password_needs(pw: str):
     if len(pw) < 15 :
@@ -42,7 +82,6 @@ def password_needs(pw: str):
 
     return True,""
 
-
 async def broadcast(message: str, sender=None):
     async with clients_lock:
         dead = []
@@ -57,12 +96,14 @@ async def broadcast(message: str, sender=None):
         for ws in dead:
             clients.discard(ws)
 
-
 async def recv_line(ws) -> str:
-    msg = await ws.recv()
-    if msg is None:
+    try:
+        msg = await ws.recv()
+        if msg is None:
+            return ""
+        return str(msg).strip()
+    except:
         return ""
-    return str(msg).strip()
 
 #Creates Db for User/Pass passwords are hashed in DB
 def initialize_db():
@@ -82,7 +123,6 @@ def initialize_db():
     )
     conn.commit()
     conn.close()
-
 
 async def handle_connection(ws):
     failed_attempts = 0
@@ -106,6 +146,7 @@ async def handle_connection(ws):
 
             conn = sqlite3.connect("secchat.db")
             cur = conn.cursor()
+            
             #Register
             if mode == "R":
                 ok_pass, reason = password_needs(password)
@@ -138,24 +179,26 @@ async def handle_connection(ws):
 
                 if failed_attempts >= login_attempts:
                     await ws.send("Too many failed attempts.")
-                    await ws.close(code=4001, reason="Too many failed attempts")
+                    await ws.close(code=4001)
                     return
 
                 continue
 
+            # Login Successful
             await ws.send("Login Successful!")
             failed_attempts = 0
             break
 
-
-        # max clients check
+        # Check max clients and add to lists ONLY ONCE after successful login
         async with clients_lock:
             if len(clients) >= max_clients:
                 await ws.send("Server full")
-                await ws.close(code=1001, reason="Server full")
+                await ws.close(code=1001)
                 return
             clients.add(ws)
+            active_users[ws] = username 
 
+        await broadcast_user_list() 
         await broadcast(f"[{username} joined]", sender=ws)
 
         # chat loop
@@ -163,24 +206,47 @@ async def handle_connection(ws):
             msg = await recv_line(ws)
             if not msg:
                 break
+#=================================================================
+            # Filtering out raw data from the text logs, want log files sent, not actual file data.
+            if msg.startswith("FILE:"):
+                await write_to_log(username, f"[Sent a file]") # Log file sends with the filename   
+            else: 
+                await write_to_log(username, msg) # Log all messages to a file for later review
+#==================================================================
+            if msg.startswith("/msg "):
+                parts = msg.split(" ", 2)
+                if len(parts) >= 3:
+                    target_user = parts[1]
+                    private_content = parts[2]
+
+                    # Find target websocket
+                    found = False
+                    for client_ws, name in active_users.items():
+                        if name == target_user:
+                            await client_ws.send(f"[PM from {username}] {private_content}")
+                            await ws.send(f"[PM to {target_user}] {private_content}")
+                            found = True
+                            break
+                    if not found:
+                        await ws.send(f"User {target_user} not found.")
+                continue
+
             await broadcast(f"{username}: {msg}")
 
-    except websockets.exceptions.ConnectionClosed:
+    except Exception:
         pass
-    except Exception as e:
-        try:
-            await ws.send(f"Error")
-        except Exception:
-            pass
     finally:
         async with clients_lock:
             clients.discard(ws)
+            if ws in active_users:
+                del active_users[ws]
         if username:
+            await broadcast_user_list() # update user list for everyone when someone leaves
             await broadcast(f"[{username} left]", sender=ws)
-
 
 async def main():
     initialize_db()
+    setup_server_folders()
 
     ssl_ctx = ssl.SSLContext(ssl.PROTOCOL_TLS_SERVER)
     ssl_ctx.load_cert_chain(cert, key)
@@ -188,7 +254,6 @@ async def main():
     print(f"Listening on wss://{HOST}:{PORT}")
     async with websockets.serve(handle_connection, HOST, PORT, ssl=ssl_ctx):
         await asyncio.Future()
-
 
 if __name__ == "__main__":
     asyncio.run(main())

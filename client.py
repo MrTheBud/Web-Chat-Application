@@ -244,15 +244,13 @@ chat.place(x=10, y=10, relwidth=0.60, relheight=0.80)
 
 # Entry box for message input
 entry = tk.Entry(root, font=("Times New Roman", 16), width=50, bg="gray15", fg="white", insertbackground="white")
-entry.place(relx=0.0, rely=1.0, anchor="sw", x=60, y=-10, width=500, height=35) # Shift right to make room for emoji button
+entry.place(relx=0.0, rely=1.0, anchor="sw", x=60, y=-10, width=500, height=35)
 
-#================================================================
 # Emoji Button
 emoji_btn = tk.Button(root, text="😀", font=("Times New Roman" ,14), bg="gray15", fg="white", relief="flat", command=open_emoji_menu)
 emoji_btn.place(relx=0.0, rely=1.0, anchor="sw", x=10, y=-10, width=45, height=35)
-#=================================================================
 
-#Other Buttons
+#Misc Buttons
 send_btn = tk.Button(root, text="Send", padx=20, pady=10, bg="green", fg="black", command=send_message)
 send_btn.place(relx=1.0, rely=1.0, anchor="se", x=-275, y=-10)
 
@@ -270,13 +268,12 @@ conn_btn.place(relx=1.0, rely=1.0, anchor="se", x=-135, y=-60)
 
 fle_btn = tk.Button(root, text='file', padx=20, pady= 10, bg='green', fg='black')#add command
 fle_btn.place(relx=1.0, rely=1.0, anchor='se', x=-275, y=-60)
-#==========================================================
+
 #Sidebar for active users
 sidebar = tk.Frame(root, width=150, bg="gray10")
 sidebar.place(relx=1.0, x=-95, y=80, anchor="ne", width=180, height=350)
 
 tk.Label(sidebar, text="ONLINE USERS", bg="gray10", fg="green", font=("Times New Roman", 12, "bold")).pack(pady=5)
-#===========================================================
 
 root.bind("<Return>", send_message)
 

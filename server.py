@@ -7,7 +7,7 @@ import os
 import time
 from datetime import datetime
 
-HOST = "localhost" # Change to server's IP address or use "localhost" for local testing
+HOST = "0.0.0.0" # Change to server's IP address or use "localhost" for local testing
 PORT = 9999 # Must match the port used in client.py
 
 cert = "cert.pem" # Make sure to generate cert.pem and key.pem using openssl for secure communication.

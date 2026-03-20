@@ -1,8 +1,5 @@
 #Made By: Kevin Perez, Alex Islas, Dino Rozac
 
-# NOTES: TO FIX: 
-# function update_sidebar() not showing users
-
 import time
 import tkinter as tk
 from tkinter import simpledialog, filedialog # For input dialogs, file selection, and message boxes
@@ -10,9 +7,10 @@ import threading
 import ssl
 from websocket import WebSocketApp  # pip install websocket-client
 import base64
+import os
 
 #IPv4 Only change needed to be made by client
-HOST = "localhost" # Change to server's IP address or use "localhost" for local testing
+HOST = "192.168.110.1" # Change to server's IP address or use "localhost" for local testing
 PORT = 9999 # Must match the port used in server.py
 WSS_URL = f"wss://{HOST}:{PORT}"
 
@@ -40,13 +38,16 @@ def on_open(ws):
     global connected
     connected = True
     root.after(0, chat_insert, "[Connected]")
+    root.after(0, con_dis_button)
 
 def on_close(ws, code, reason):
-    global connected, auto_reconnect
+    global connected, ws_pop, auto_reconnect
     connected = False
+    root.after(0, con_dis_button)
+
 
 def on_error(ws, error):
-    root.after(0, chat_insert, f"[Error]")
+    root.after(0, chat_insert, f"[Error] {error}")
 
 def connect_to_server():
     global ws_app
@@ -109,6 +110,7 @@ def disconnect():
 
     ws_app = None
     chat_insert("[Disconnected]")
+    root.after(0, con_dis_button)
 
 def send_message(event=None):
     global last_send_time
@@ -221,6 +223,15 @@ def open_emoji_menu():
     emoji_window.focus_set()
 #=========================================================================
 
+#Choose File sending
+# def choose_file():
+    #finish
+
+def con_dis_button():
+    if connected:
+        conn_btn.config(text='Disconnect', command=disconnect, bg='red',fg='Black')
+    else:
+        conn_btn.config(text='Connect', command=start_connection, bg='green',fg='Black')
 
 #Gui
 root = tk.Tk()
@@ -255,18 +266,15 @@ send_btn = tk.Button(root, text="Send", padx=20, pady=10, bg="green", fg="black"
 send_btn.place(relx=1.0, rely=1.0, anchor="se", x=-275, y=-10)
 
 clear_btn = tk.Button(root, text="Clear", padx=20, pady=10, bg="green", fg="black", command=clear_chat)
-clear_btn.place(relx=1.0, rely=1.0, anchor="se", x=-150, y=-10)
+clear_btn.place(relx=1.0, rely=1.0, anchor="se", x=-195, y=-10)
 
 close_btn = tk.Button(root, text="Close", padx=20, pady=10, bg="green", fg="black", command=close)
 close_btn.place(relx=1.0, rely=1.0, anchor="se", x=-10, y=-10)
 
-disc_btn = tk.Button(root, text="Disconnect", padx=20, pady=10, bg="green", fg="black", command=disconnect)
-disc_btn.place(relx=1.0, rely=1.0, anchor="se", x=-20, y=-60)
+conn_btn = tk.Button(root, text='Connect', padx=20, pady=10, bg='Green', fg='black', command=start_connection)
+conn_btn.place(relx=1.0, rely=1.0, anchor="se", x=-86, y=-10)
 
-conn_btn = tk.Button(root, text="Connect", padx=20, pady=10, bg="green", fg="black", command=start_connection)
-conn_btn.place(relx=1.0, rely=1.0, anchor="se", x=-135, y=-60)
-
-fle_btn = tk.Button(root, text='file', padx=20, pady= 10, bg='green', fg='black')#add command
+fle_btn = tk.Button(root, text='File', padx=20, pady= 10, bg='green', fg='black')#add command
 fle_btn.place(relx=1.0, rely=1.0, anchor='se', x=-275, y=-60)
 
 #Sidebar for active users
@@ -276,7 +284,6 @@ sidebar.place(relx=1.0, x=-95, y=80, anchor="ne", width=180, height=350)
 tk.Label(sidebar, text="ONLINE USERS", bg="gray10", fg="green", font=("Times New Roman", 12, "bold")).pack(pady=5)
 
 root.bind("<Return>", send_message)
-
 ws_thread = threading.Thread(target=connect_to_server, daemon=True)
 ws_thread.start()
 

@@ -9,6 +9,7 @@ import ssl
 from websocket import WebSocketApp  # pip install websocket-client
 import base64
 import os
+# import re
 
 #IPv4 Only change needed to be made by client
 HOST = "192.168.110.1" # Change to server's IP address or use "localhost" for local testing
@@ -29,16 +30,77 @@ last_send_time = 0.0
 received_files = {}
 max_file_size = 10 * 1024 *1024
 
+def format_and_insert(text: str):
+    """
+    Parse/enable simple formatting syntax and applies style to chat box
+    Supports: 
+    1) *bold*
+    2) _italic_
+    3) `code`
+    """
+    chat.configure(state="normal")
+
+    i = 0
+    while i < len(text):
+
+        # *BOLD text here*
+        if text[i] == "*":
+            end = text.find("*", i + 1)
+            if end != -1:
+                content = text[i+1:end]
+                start_index = chat.index("end-1c")
+                chat.insert("end", content)
+                end_index = chat.index("end-1c")
+                chat.tag_add("bold", start_index, end_index)
+                i = end + 1
+                continue
+
+        # _ITALIC text here_
+        elif text[i] == "_":
+            end = text.find("_", i+1)
+            if end != -1:
+                content = text[i+1:end]
+                start_index = chat.index("end-1c")
+                chat.insert("end", content)
+                end_index = chat.index("end-1c")
+                chat.tag_add("italic", start_index, end_index)
+                i = end + 1
+                continue
+
+        # `CODE text here`
+        elif text[i] == "`":
+            end = text.find("`", i+1)
+            if end != -1:
+                content = text[i+1:end]
+                start_index = chat.index("end-1c")
+                chat.insert("end", content)
+                end_index = chat.index("end-1c")
+                chat.tag_add("code", start_index, end_index)
+                i = end + 1
+                continue
+
+        # Normal text
+        chat.insert("end", text[i])
+        i += 1
+
+    chat.insert("end", "\n")
+    chat.configure(state="disabled")
+    chat.see("end")
+
+"""
+REMOVED SINCE REPLACED WITH FORMAT_AND_INSERT
+
 def chat_insert(text: str):
     chat.configure(state="normal")
     chat.insert("end", text + "\n")
     chat.configure(state="disabled")
     chat.see("end")
+"""
 
 def on_open(ws):
     global connected
     connected = True
-    root.after(0, chat_insert, "[Connected]")
+    root.after(0, format_and_insert, "[Connected]")
     root.after(0, con_dis_button)
 
 def on_close(ws, code, reason):
@@ -48,7 +110,7 @@ def on_close(ws, code, reason):
 
 
 def on_error(ws, error):
-    root.after(0, chat_insert, f"[Error] {error}")
+    root.after(0, format_and_insert, f"[Error] {error}")
 
 def connect_to_server():
     global ws_app
@@ -76,7 +138,7 @@ def connect_to_server():
             )
 
         except Exception as e:
-            root.after(0, chat_insert, f"[Reconnect error]")
+            root.after(0, format_and_insert, f"[Reconnect error]")
 
         time.sleep(reconnect_delay)
 
@@ -86,16 +148,16 @@ def start_connection():
     auto_reconnect = True
 
     if connected:
-        chat_insert("[Already connected]")
+        format_and_insert("[Already connected]")
         return
 
     if ws_thread and ws_thread.is_alive():
-        chat_insert("[Connecting...]")
+        format_and_insert("[Connecting...]")
         return
 
     ws_thread = threading.Thread(target=connect_to_server, daemon=True)
     ws_thread.start()
-    chat_insert("[Connecting...]")
+    format_and_insert("[Connecting...]")
 
 def disconnect():
     global connected, ws_app, auto_reconnect
@@ -110,23 +172,38 @@ def disconnect():
         pass
 
     ws_app = None
-    chat_insert("[Disconnected]")
+    format_and_insert("[Disconnected]")
     root.after(0, con_dis_button)
 
 def send_message(event=None):
     global last_send_time
 
     msg = entry.get().strip()
+
+    # Help Command
+
+    if msg.lower() == "/help":
+        format_and_insert(
+            "Formatting Help:\n"
+            "*bold* -> bold text\n"
+            "_italic_ -> italic text\n"
+            "`code` -> code style\n"
+            "/msg USER message -> private message\n"
+            "/help -> show this menu"
+        )
+        entry.delete(0, "end")
+        return
+    
     if not msg:
         return
 
     if not connected or ws_app is None:
-        chat_insert("[Not connected]")
+        format_and_insert("[Not connected]")
         return
 
     now = time.monotonic()
     if now - last_send_time < send_rate:
-        chat_insert("Wait a second.")
+        format_and_insert("Wait a second.")
         return
 
     last_send_time = now
@@ -135,7 +212,7 @@ def send_message(event=None):
     try:
         ws_app.send(msg)
     except Exception as e:
-        chat_insert(f"[Send failed] {e}")
+        format_and_insert(f"[Send failed] {e}")
 
 def clear_chat():
     chat.configure(state="normal")
@@ -157,7 +234,7 @@ def switch_chat(target_name):
     entry.delete(0, "end")
     entry.insert(0, f"/msg {target_name} ")
     entry.focus()
-    chat_insert(f"--- Private Chat with {target_name} ---")
+    format_and_insert(f"--- Private Chat with {target_name} ---")
 
 def on_message(ws, message):
     msg = str(message)
@@ -179,7 +256,7 @@ def on_message(ws, message):
     except Exception:
         pass
 
-    root.after(0, chat_insert, msg)
+    root.after(0, format_and_insert, msg)
 
 def handle_file(payload):
     try:
@@ -195,11 +272,11 @@ def handle_file(payload):
             'data': raw_bytes
         }
 
-        chat_insert(f'[File From {sender}]')
+        format_and_insert(f'[File From {sender}]')
         download_link(f'Download {filename}', file_id)
 
     except Exception as e:
-        chat_insert(f'[File Receving Failure] {e}')
+        format_and_insert(f'[File Receving Failure] {e}')
 
 def update_sidebar(names):
     # Clear old buttons
@@ -257,7 +334,7 @@ def open_emoji_menu():
 #Choose File sending
 def choose_file():
     if not connected or ws_app is None:
-        chat_insert('[Not Connected]')
+        format_and_insert('[Not Connected]')
         return
 
     path = filedialog.askopenfilename()
@@ -272,7 +349,7 @@ def choose_file():
             raw_bytes = f.read()
 
         if len(raw_bytes) > max_file_size:
-            chat_insert('[File Too Large]')
+            format_and_insert('[File Too Large]')
             return
 
         encode_data = base64.b64encode(raw_bytes).decode('utf-8')
@@ -285,10 +362,10 @@ def choose_file():
         }
 
         ws_app.send(json.dumps(payload))
-        chat_insert(f'[Sent File: {filename}]')
+        format_and_insert(f'[Sent File: {filename}]')
 
     except Exception as e:
-        chat_insert(f'[Sent Failure] {e}')
+        format_and_insert(f'[Sent Failure] {e}')
 
 def download_link(label_text, file_id):
     tag_name = f'download_{file_id}'
@@ -352,6 +429,9 @@ chat = tk.Text(
 )
 chat.configure(state="disabled")
 chat.place(x=10, y=10, relwidth=0.60, relheight=0.80)
+chat.tag_config("bold", font=("Times New Roman", 14, "bold"))
+chat.tag_config("italic", font=("Times New Roman", 14, "italic"))
+chat.tag_config("code", font=("Courier New", 12), background="gray20", foreground="lightgreen")
 
 # Entry box for message input
 entry = tk.Entry(root, font=("Times New Roman", 16), width=50, bg="gray15", fg="white", insertbackground="white")

@@ -5,9 +5,10 @@ import hashlib
 import websockets
 import os
 import time
+import json
 from datetime import datetime
 
-HOST = "localhost" # Change to server's IP address or use "localhost" for local testing
+HOST = "0.0.0.0" # Change to server's IP address or use "localhost" for local testing
 PORT = 9999 # Must match the port used in client.py
 
 cert = "cert.pem" # Make sure to generate cert.pem and key.pem using openssl for secure communication.
@@ -206,6 +207,16 @@ async def handle_connection(ws):
             msg = await recv_line(ws)
             if not msg:
                 break
+
+            try:
+                payload = json.loads(msg)
+                if isinstance(payload, dict) and payload.get("type") == "file":
+                    payload["from"] = username
+                    await write_to_log(username, f"[Sent file: {payload['name']}]")
+                    await broadcast(json.dumps(payload), sender=ws)
+                    continue
+            except Exception:
+                pass
 #=================================================================
             # Filtering out raw data from the text logs, want log files sent, not actual file data.
             if msg.startswith("FILE:"):
@@ -252,7 +263,7 @@ async def main():
     ssl_ctx.load_cert_chain(cert, key)
 
     print(f"Listening on wss://{HOST}:{PORT}")
-    async with websockets.serve(handle_connection, HOST, PORT, ssl=ssl_ctx):
+    async with websockets.serve(handle_connection, HOST, PORT, ssl=ssl_ctx, max_size=16*1024*1024):
         await asyncio.Future()
 
 if __name__ == "__main__":

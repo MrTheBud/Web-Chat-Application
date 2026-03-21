@@ -1,12 +1,15 @@
 #Made By: Kevin Perez, Alex Islas, Dino Rozac
 
 import time
+import json
 import tkinter as tk
-from tkinter import simpledialog, filedialog # For input dialogs, file selection, and message boxes
+from tkinter import simpledialog, filedialog, messagebox # For input dialogs, file selection, and message boxes
 import threading
 import ssl
 from websocket import WebSocketApp  # pip install websocket-client
 import base64
+import os
+# import re
 
 #IPv4 Only change needed to be made by client
 HOST = "localhost" # Change to server's IP address or use "localhost" for local testing
@@ -24,26 +27,109 @@ auto_reconnect = True
 ws_thread = None
 last_send_time = 0.0
 
+received_files = {}
+max_file_size = 10 * 1024 *1024
+
+def format_and_insert(text: str, parse_formatting=True):
+    """
+    Parse/enable simple formatting syntax and applies style to chat box
+    Supports: 
+    1) * bold *
+    2) _ italic _
+    3) ` code `
+    """
+    chat.configure(state="normal")
+
+    # If formatting is OFF, just print raw text
+    if not parse_formatting:
+        chat.insert("end", text + "\n")
+        chat.configure(state ="disabled")
+        chat.see("end")
+        return
+
+    i = 0
+    while i < len(text):
+
+        # *BOLD text here*
+        if text[i] == "*":
+            end = text.find("*", i + 1)
+            if end != -1:
+                content = text[i+1:end]
+                start_index = chat.index("end-1c")
+                chat.insert("end", content)
+                end_index = chat.index("end-1c")
+                chat.tag_add("bold", start_index, end_index)
+                i = end + 1
+                continue
+
+        # _ITALIC text here_
+        elif text[i] == "_":
+            end = text.find("_", i+1)
+            if end != -1:
+                content = text[i+1:end]
+                start_index = chat.index("end-1c")
+                chat.insert("end", content)
+                end_index = chat.index("end-1c")
+                chat.tag_add("italic", start_index, end_index)
+                i = end + 1
+                continue
+
+        # `CODE text here`
+        elif text[i] == "`":
+            end = text.find("`", i+1)
+            if end != -1:
+                content = text[i+1:end]
+                start_index = chat.index("end-1c")
+                chat.insert("end", content)
+                end_index = chat.index("end-1c")
+                chat.tag_add("code", start_index, end_index)
+                i = end + 1
+                continue
+
+        # ~UNDERLINE text here~
+        elif text[i] == "~":
+            end = text.find("~", i+1)
+            if end != -1:
+                content = text[i+1:end]
+                start_index = chat.index("end-1c")
+                chat.insert("end", content)
+                end_index = chat.index("end-1c")
+                chat.tag_add("underline", start_index, end_index)
+                i = end + 1
+                continue
+
+        # Normal text
+        chat.insert("end", text[i])
+        i += 1
+
+    chat.insert("end", "\n")
+    chat.configure(state="disabled")
+    chat.see("end")
+
+"""
+REMOVED SINCE REPLACED WITH FORMAT_AND_INSERT
+
 def chat_insert(text: str):
     chat.configure(state="normal")
     chat.insert("end", text + "\n")
     chat.configure(state="disabled")
     chat.see("end")
-
-def on_message(ws, message):
-    root.after(0, chat_insert, str(message))
+"""
 
 def on_open(ws):
     global connected
     connected = True
-    root.after(0, chat_insert, "[Connected]")
+    root.after(0, format_and_insert, "[Connected]")
+    root.after(0, con_dis_button)
 
 def on_close(ws, code, reason):
     global connected, auto_reconnect
     connected = False
+    root.after(0, con_dis_button)
+
 
 def on_error(ws, error):
-    root.after(0, chat_insert, f"[Error]")
+    root.after(0, format_and_insert, f"[Error] {error}")
 
 def connect_to_server():
     global ws_app
@@ -71,7 +157,7 @@ def connect_to_server():
             )
 
         except Exception as e:
-            root.after(0, chat_insert, f"[Reconnect error]")
+            root.after(0, format_and_insert, f"[Reconnect error]")
 
         time.sleep(reconnect_delay)
 
@@ -81,16 +167,16 @@ def start_connection():
     auto_reconnect = True
 
     if connected:
-        chat_insert("[Already connected]")
+        format_and_insert("[Already connected]")
         return
 
     if ws_thread and ws_thread.is_alive():
-        chat_insert("[Connecting...]")
+        format_and_insert("[Connecting...]")
         return
 
     ws_thread = threading.Thread(target=connect_to_server, daemon=True)
     ws_thread.start()
-    chat_insert("[Connecting...]")
+    format_and_insert("[Connecting...]")
 
 def disconnect():
     global connected, ws_app, auto_reconnect
@@ -105,22 +191,40 @@ def disconnect():
         pass
 
     ws_app = None
-    chat_insert("[Disconnected]")
+    format_and_insert("[Disconnected]")
+    root.after(0, con_dis_button)
 
 def send_message(event=None):
     global last_send_time
 
     msg = entry.get().strip()
+
+    # Help Command
+    if msg.lower() == "/help":
+        format_and_insert(
+            "Formatting Help:\n"
+            "*bold* -> bold text\n"
+            "_italic_ -> italic text\n"
+            "`code` -> code style\n"
+            "~underline~ -> underline text\n"
+            "\nCommands:\n"
+            "/msg USER message -> private message\n"
+            "/help -> show this menu",
+            parse_formatting=False
+        )
+        entry.delete(0, "end")
+        return
+    
     if not msg:
         return
 
     if not connected or ws_app is None:
-        chat_insert("[Not connected]")
+        format_and_insert("[Not connected]")
         return
 
     now = time.monotonic()
     if now - last_send_time < send_rate:
-        chat_insert("Wait a second.")
+        format_and_insert("Wait a second.")
         return
 
     last_send_time = now
@@ -129,7 +233,7 @@ def send_message(event=None):
     try:
         ws_app.send(msg)
     except Exception as e:
-        chat_insert(f"[Send failed] {e}")
+        format_and_insert(f"[Send failed] {e}")
 
 def clear_chat():
     chat.configure(state="normal")
@@ -151,19 +255,49 @@ def switch_chat(target_name):
     entry.delete(0, "end")
     entry.insert(0, f"/msg {target_name} ")
     entry.focus()
-    chat_insert(f"--- Private Chat with {target_name} ---")
+    format_and_insert(f"--- Private Chat with {target_name} ---")
 
 def on_message(ws, message):
     msg = str(message)
-    print(f"DEBUG: Server sent -> {msg}") # Look at your terminal to see this!
+    print(f"DEBUG: Server sent -> {msg}") # Look at your terminal
     
     if msg.startswith("USERLIST:"):
         raw_names = msg.replace("USERLIST:", "")
         # If raw_names is empty, we get [''], so we filter that out
         name_list = [n for n in raw_names.split(",") if n]
         root.after(0, update_sidebar, name_list)
-    else: 
-        root.after(0, chat_insert, msg)
+        return
+
+    try:
+        payload = json.loads(msg)
+        if isinstance(payload, dict) and payload.get('type') == 'file':
+            root.after(0, lambda: handle_file(payload))
+            return
+    
+    except Exception:
+        pass
+
+    root.after(0, format_and_insert, msg)
+
+def handle_file(payload):
+    try:
+        filename = payload['name']
+        encode_data = payload['data']
+        sender = payload.get('from', 'unknown')
+
+        raw_bytes = base64.b64decode(encode_data)
+        file_id = len(received_files)
+        
+        received_files[file_id] = {
+            'name': filename,
+            'data': raw_bytes
+        }
+
+        format_and_insert(f'[File From {sender}]')
+        download_link(f'Download {filename}', file_id)
+
+    except Exception as e:
+        format_and_insert(f'[File Receving Failure] {e}')
 
 def update_sidebar(names):
     # Clear old buttons
@@ -218,6 +352,84 @@ def open_emoji_menu():
     emoji_window.focus_set()
 #=========================================================================
 
+#Choose File sending
+def choose_file():
+    if not connected or ws_app is None:
+        format_and_insert('[Not Connected]')
+        return
+
+    path = filedialog.askopenfilename()
+    if not path:
+        return
+
+    try:
+
+        filename = os.path.basename(path)
+
+        with open(path, 'rb') as f:
+            raw_bytes = f.read()
+
+        if len(raw_bytes) > max_file_size:
+            format_and_insert('[File Too Large]')
+            return
+
+        encode_data = base64.b64encode(raw_bytes).decode('utf-8')
+
+        payload = {
+            'type': 'file',
+            'name': filename,
+            'size': len(raw_bytes),
+            'data': encode_data
+        }
+
+        ws_app.send(json.dumps(payload))
+        format_and_insert(f'[Sent File: {filename}]')
+
+    except Exception as e:
+        format_and_insert(f'[Sent Failure] {e}')
+
+def download_link(label_text, file_id):
+    tag_name = f'download_{file_id}'
+
+    chat.configure(state='normal')
+    start_index = chat.index('end-1c')
+    chat.insert('end', label_text)
+    end_index = chat.index('end-1c')
+    chat.insert('end', '\n')
+
+    chat.tag_add(tag_name, start_index, end_index)
+    chat.tag_config(tag_name, foreground='blue', underline=1)
+    chat.tag_bind(tag_name, '<Button-1>', lambda e, fid=file_id: save_received_file(fid))
+
+    chat.configure(state='disabled')
+    chat.see('end')
+
+def save_received_file(file_id):
+    file_info = received_files.get(file_id)
+    if not file_info:
+        messagebox.showerror('Error', 'File Not Found')
+        return
+
+    save_path = filedialog.asksaveasfilename(
+        initialfile=file_info['name']
+    )
+    if not save_path:
+        return
+    
+    try:
+        with open(save_path, 'wb') as f:
+            f.write(file_info['data'])
+        messagebox.showinfo('Saved', f'File saved to:\n{save_path}')
+    except Exception as e:
+        messagebox.showerror('Save Failure', str(e))
+
+
+
+def con_dis_button():
+    if connected:
+        conn_btn.config(text='Disconnect', command=disconnect, bg='red',fg='Black')
+    else:
+        conn_btn.config(text='Connect', command=start_connection, bg='green',fg='Black')
 
 #Gui
 root = tk.Tk()
@@ -238,43 +450,42 @@ chat = tk.Text(
 )
 chat.configure(state="disabled")
 chat.place(x=10, y=10, relwidth=0.60, relheight=0.80)
+chat.tag_config("bold", font=("Times New Roman", 14, "bold"))
+chat.tag_config("italic", font=("Times New Roman", 14, "italic"))
+chat.tag_config("code", font=("Courier New", 12), background="gray20", foreground="lightgreen")
+chat.tag_config("underline", underline=1)
 
 # Entry box for message input
 entry = tk.Entry(root, font=("Times New Roman", 16), width=50, bg="gray15", fg="white", insertbackground="white")
-entry.place(relx=0.0, rely=1.0, anchor="sw", x=60, y=-10, width=500, height=35) # Shift right to make room for emoji button
+entry.place(relx=0.0, rely=1.0, anchor="sw", x=60, y=-10, width=500, height=35)
 
-#================================================================
 # Emoji Button
-emoji_btn = tk.Button(root, text="😀", font=("Arial" ,14), bg="gray15", fg="white", relief="flat", command=open_emoji_menu)
+emoji_btn = tk.Button(root, text="😀", font=("Times New Roman" ,14), bg="gray15", fg="white", relief="flat", command=open_emoji_menu)
 emoji_btn.place(relx=0.0, rely=1.0, anchor="sw", x=10, y=-10, width=45, height=35)
-#=================================================================
 
-#Other Buttons
+#Misc Buttons
 send_btn = tk.Button(root, text="Send", padx=20, pady=10, bg="green", fg="black", command=send_message)
 send_btn.place(relx=1.0, rely=1.0, anchor="se", x=-275, y=-10)
 
 clear_btn = tk.Button(root, text="Clear", padx=20, pady=10, bg="green", fg="black", command=clear_chat)
-clear_btn.place(relx=1.0, rely=1.0, anchor="se", x=-150, y=-10)
+clear_btn.place(relx=1.0, rely=1.0, anchor="se", x=-195, y=-10)
 
 close_btn = tk.Button(root, text="Close", padx=20, pady=10, bg="green", fg="black", command=close)
 close_btn.place(relx=1.0, rely=1.0, anchor="se", x=-10, y=-10)
 
-disc_btn = tk.Button(root, text="Disconnect", padx=20, pady=10, bg="green", fg="black", command=disconnect)
-disc_btn.place(relx=1.0, rely=1.0, anchor="se", x=-20, y=-60)
+conn_btn = tk.Button(root, text='Connect', padx=20, pady=10, bg='Green', fg='black', command=start_connection)
+conn_btn.place(relx=1.0, rely=1.0, anchor="se", x=-86, y=-10)
 
-conn_btn = tk.Button(root, text="Connect", padx=20, pady=10, bg="green", fg="black", command=start_connection)
-conn_btn.place(relx=1.0, rely=1.0, anchor="se", x=-135, y=-60)
+fle_btn = tk.Button(root, text='File', padx=20, pady= 10, bg='green', fg='black', command=choose_file)
+fle_btn.place(relx=1.0, rely=1.0, anchor='se', x=-275, y=-60)
 
-#==========================================================
 #Sidebar for active users
 sidebar = tk.Frame(root, width=150, bg="gray10")
-sidebar.place(relx=1.0, y=80, anchor="ne", width=180, height=350)
+sidebar.place(relx=1.0, x=-95, y=80, anchor="ne", width=180, height=350)
 
-tk.Label(sidebar, text="ONLINE USERS", bg="gray10", fg="green", font=("Arial", 12, "bold")).pack(pady=5)
-#===========================================================
+tk.Label(sidebar, text="ONLINE USERS", bg="gray10", fg="green", font=("Times New Roman", 12, "bold")).pack(pady=5)
 
 root.bind("<Return>", send_message)
-
 ws_thread = threading.Thread(target=connect_to_server, daemon=True)
 ws_thread.start()
 

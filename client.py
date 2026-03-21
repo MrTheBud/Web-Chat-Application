@@ -12,7 +12,7 @@ import os
 # import re
 
 #IPv4 Only change needed to be made by client
-HOST = "192.168.110.1" # Change to server's IP address or use "localhost" for local testing
+HOST = "localhost" # Change to server's IP address or use "localhost" for local testing
 PORT = 9999 # Must match the port used in server.py
 WSS_URL = f"wss://{HOST}:{PORT}"
 
@@ -30,15 +30,22 @@ last_send_time = 0.0
 received_files = {}
 max_file_size = 10 * 1024 *1024
 
-def format_and_insert(text: str):
+def format_and_insert(text: str, parse_formatting=True):
     """
     Parse/enable simple formatting syntax and applies style to chat box
     Supports: 
-    1) *bold*
-    2) _italic_
-    3) `code`
+    1) * bold *
+    2) _ italic _
+    3) ` code `
     """
     chat.configure(state="normal")
+
+    # If formatting is OFF, just print raw text
+    if not parse_formatting:
+        chat.insert("end", text + "\n")
+        chat.configure(state ="disabled")
+        chat.see("end")
+        return
 
     i = 0
     while i < len(text):
@@ -76,6 +83,18 @@ def format_and_insert(text: str):
                 chat.insert("end", content)
                 end_index = chat.index("end-1c")
                 chat.tag_add("code", start_index, end_index)
+                i = end + 1
+                continue
+
+        # ~UNDERLINE text here~
+        elif text[i] == "~":
+            end = text.find("~", i+1)
+            if end != -1:
+                content = text[i+1:end]
+                start_index = chat.index("end-1c")
+                chat.insert("end", content)
+                end_index = chat.index("end-1c")
+                chat.tag_add("underline", start_index, end_index)
                 i = end + 1
                 continue
 
@@ -181,15 +200,17 @@ def send_message(event=None):
     msg = entry.get().strip()
 
     # Help Command
-
     if msg.lower() == "/help":
         format_and_insert(
             "Formatting Help:\n"
             "*bold* -> bold text\n"
             "_italic_ -> italic text\n"
             "`code` -> code style\n"
+            "~underline~ -> underline text\n"
+            "\nCommands:\n"
             "/msg USER message -> private message\n"
-            "/help -> show this menu"
+            "/help -> show this menu",
+            parse_formatting=False
         )
         entry.delete(0, "end")
         return
@@ -432,6 +453,7 @@ chat.place(x=10, y=10, relwidth=0.60, relheight=0.80)
 chat.tag_config("bold", font=("Times New Roman", 14, "bold"))
 chat.tag_config("italic", font=("Times New Roman", 14, "italic"))
 chat.tag_config("code", font=("Courier New", 12), background="gray20", foreground="lightgreen")
+chat.tag_config("underline", underline=1)
 
 # Entry box for message input
 entry = tk.Entry(root, font=("Times New Roman", 16), width=50, bg="gray15", fg="white", insertbackground="white")

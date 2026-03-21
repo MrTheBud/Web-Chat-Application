@@ -1,8 +1,5 @@
 #Made By: Kevin Perez, Alex Islas, Dino Rozac
 
-# NOTES: TO FIX: 
-# function update_sidebar() not showing users
-
 import time
 import tkinter as tk
 from tkinter import simpledialog, filedialog # For input dialogs, file selection, and message boxes

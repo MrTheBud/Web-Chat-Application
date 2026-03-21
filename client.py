@@ -1,8 +1,9 @@
 #Made By: Kevin Perez, Alex Islas, Dino Rozac
 
 import time
+import json
 import tkinter as tk
-from tkinter import simpledialog, filedialog # For input dialogs, file selection, and message boxes
+from tkinter import simpledialog, filedialog, messagebox # For input dialogs, file selection, and message boxes
 import threading
 import ssl
 from websocket import WebSocketApp  # pip install websocket-client
@@ -25,14 +26,14 @@ auto_reconnect = True
 ws_thread = None
 last_send_time = 0.0
 
+received_files = {}
+max_file_size = 10 * 1024 *1024
+
 def chat_insert(text: str):
     chat.configure(state="normal")
     chat.insert("end", text + "\n")
     chat.configure(state="disabled")
     chat.see("end")
-
-def on_message(ws, message):
-    root.after(0, chat_insert, str(message))
 
 def on_open(ws):
     global connected
@@ -41,7 +42,7 @@ def on_open(ws):
     root.after(0, con_dis_button)
 
 def on_close(ws, code, reason):
-    global connected, ws_pop, auto_reconnect
+    global connected, auto_reconnect
     connected = False
     root.after(0, con_dis_button)
 
@@ -160,15 +161,45 @@ def switch_chat(target_name):
 
 def on_message(ws, message):
     msg = str(message)
-    print(f"DEBUG: Server sent -> {msg}") # Look at your terminal to see this!
+    print(f"DEBUG: Server sent -> {msg}") # Look at your terminal
     
     if msg.startswith("USERLIST:"):
         raw_names = msg.replace("USERLIST:", "")
         # If raw_names is empty, we get [''], so we filter that out
         name_list = [n for n in raw_names.split(",") if n]
         root.after(0, update_sidebar, name_list)
-    else: 
-        root.after(0, chat_insert, msg)
+        return
+
+    try:
+        payload = json.loads(msg)
+        if isinstance(payload, dict) and payload.get('type') == 'file':
+            root.after(0, lambda: handle_file(payload))
+            return
+    
+    except Exception:
+        pass
+
+    root.after(0, chat_insert, msg)
+
+def handle_file(payload):
+    try:
+        filename = payload['name']
+        encode_data = payload['data']
+        sender = payload.get('from', 'unknown')
+
+        raw_bytes = base64.b64decode(encode_data)
+        file_id = len(received_files)
+        
+        received_files[file_id] = {
+            'name': filename,
+            'data': raw_bytes
+        }
+
+        chat_insert(f'[File From {sender}]')
+        download_link(f'Download {filename}', file_id)
+
+    except Exception as e:
+        chat_insert(f'[File Receving Failure] {e}')
 
 def update_sidebar(names):
     # Clear old buttons
@@ -224,8 +255,77 @@ def open_emoji_menu():
 #=========================================================================
 
 #Choose File sending
-# def choose_file():
-    #finish
+def choose_file():
+    if not connected or ws_app is None:
+        chat_insert('[Not Connected]')
+        return
+
+    path = filedialog.askopenfilename()
+    if not path:
+        return
+
+    try:
+
+        filename = os.path.basename(path)
+
+        with open(path, 'rb') as f:
+            raw_bytes = f.read()
+
+        if len(raw_bytes) > max_file_size:
+            chat_insert('[File Too Large]')
+            return
+
+        encode_data = base64.b64encode(raw_bytes).decode('utf-8')
+
+        payload = {
+            'type': 'file',
+            'name': filename,
+            'size': len(raw_bytes),
+            'data': encode_data
+        }
+
+        ws_app.send(json.dumps(payload))
+        chat_insert(f'[Sent File: {filename}]')
+
+    except Exception as e:
+        chat_insert(f'[Sent Failure] {e}')
+
+def download_link(label_text, file_id):
+    tag_name = f'download_{file_id}'
+
+    chat.configure(state='normal')
+    start_index = chat.index('end-1c')
+    chat.insert('end', label_text)
+    end_index = chat.index('end-1c')
+    chat.insert('end', '\n')
+
+    chat.tag_add(tag_name, start_index, end_index)
+    chat.tag_config(tag_name, foreground='blue', underline=1)
+    chat.tag_bind(tag_name, '<Button-1>', lambda e, fid=file_id: save_received_file(fid))
+
+    chat.configure(state='disabled')
+    chat.see('end')
+
+def save_received_file(file_id):
+    file_info = received_files.get(file_id)
+    if not file_info:
+        messagebox.showerror('Error', 'File Not Found')
+        return
+
+    save_path = filedialog.asksaveasfilename(
+        initialfile=file_info['name']
+    )
+    if not save_path:
+        return
+    
+    try:
+        with open(save_path, 'wb') as f:
+            f.write(file_info['data'])
+        messagebox.showinfo('Saved', f'File saved to:\n{save_path}')
+    except Exception as e:
+        messagebox.showerror('Save Failure', str(e))
+
+
 
 def con_dis_button():
     if connected:
@@ -274,7 +374,7 @@ close_btn.place(relx=1.0, rely=1.0, anchor="se", x=-10, y=-10)
 conn_btn = tk.Button(root, text='Connect', padx=20, pady=10, bg='Green', fg='black', command=start_connection)
 conn_btn.place(relx=1.0, rely=1.0, anchor="se", x=-86, y=-10)
 
-fle_btn = tk.Button(root, text='File', padx=20, pady= 10, bg='green', fg='black')#add command
+fle_btn = tk.Button(root, text='File', padx=20, pady= 10, bg='green', fg='black', command=choose_file)
 fle_btn.place(relx=1.0, rely=1.0, anchor='se', x=-275, y=-60)
 
 #Sidebar for active users

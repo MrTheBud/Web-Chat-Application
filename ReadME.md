@@ -1,4 +1,4 @@
-# Project 1 - Client-Server Communication using Web Sockets 🔌💻🔌
+# Project 1 Pt. 2 - Client-Server Communication using Web Sockets 🔌💻🔌
 
 A real-time communication tool that is developed in Python, called **SecureChat**, that allows remote teams to communicate in a secure and efficient communication. 
 
@@ -15,13 +15,21 @@ A real-time communication tool that is developed in Python, called **SecureChat*
 
 - A client-server WebSocket-based chat system enables team members to communicate in real time. To accomplish this, the requirements are as follows:
 
-1. Real-Time Messaging - messages instantly appear
-2. Secure Conenction - wss://
-3. User Authentication - Basic authentication method
-4. Rate Limiting - Implement anti spamming method
-5. Connection Handling - Detects and connects connections as well as reconnects in terms of interruptions
+1. **Real-Time Messaging** - messages instantly appear
+2. **Secure Conenction** - wss://
+3. **User Authentication** - Basic authentication method
+4. **Rate Limiting** - Implement anti spamming method
+5. **Connection Handling** - Detects and connects connections as well as reconnects in terms of interruptions
 
-## How to Run 💡
+## Updates Since Previous Version 🆕
+
+1. **Improved User-GUI** - enables communication with more than just two users
+2. **File Sharing - enables** securely sending different files
+3. **Emoji / Rich Media Support** - allows unicode emoji usage as well as basic text formatting
+4. **User authentication** - users required to create account, stored data is encrypted, and a hashing algorithm is used
+5. **Security Hardening** - implemented brute-force for logins, logging system for chats, and end-to-end encryption 
+
+## How to Run - Option 1: VM Machines 💡
 
 For a Windows 11 OS with the goal being to run two clients on the same device, follow these instructions 
 
@@ -89,11 +97,7 @@ For a Windows 11 OS with the goal being to run two clients on the same device, f
 
 8. Run Client.py in a new terminal
 
-* At the top of the VS Terminal, press the "+ Developer Powershell" button to open up another terminal
-  
-* Start the file by typing the following code into the terminal and pressing enter:
-
-         py client.py
+* Double right click and run "client.exe" file **NEED TO ADD UPDATE IMAGE HERE**
 
   ![Screenshot of Step](images/10.jpg)
  
@@ -113,14 +117,10 @@ For a Windows 11 OS with the goal being to run two clients on the same device, f
 
   ![Screenshot of Step](images/12.jpg)
    
-11. Run Client.py in a new terminal to create a second user
+11. Run Client.py in a new terminal to create another user
 
-* At the top of the VS Terminal, press the "+" to open up another terminal
-* Type in the following code in the terminal and press Enter:
-      
-         "py client.py"
-      
-* Repeat steps 10 - 11 for a second client using the third terminal
+* Double right click and run "client.exe" file again       
+* Repeat steps 10 - 11 for a second client
 
   ![Screenshot of Step](images/12.jpg)
 

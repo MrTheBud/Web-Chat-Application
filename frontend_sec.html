@@ -1,0 +1,1299 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>SecChat</title>
+<link href="https://fonts.googleapis.com/css2?family=Share+Tech+Mono&family=Rajdhani:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg:        #0a0a0a;
+    --bg2:       #111111;
+    --bg3:       #1a1a1a;
+    --bg4:       #222222;
+    --green:     #00ff88;
+    --green-dim: #00cc66;
+    --green-dk:  #003322;
+    --red:       #ff4455;
+    --yellow:    #ffcc00;
+    --blue:      #44aaff;
+    --text:      #e8e8e8;
+    --muted:     #666666;
+    --border:    #2a2a2a;
+    --mono:      'Share Tech Mono', monospace;
+    --sans:      'Rajdhani', sans-serif;
+  }
+
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: var(--sans);
+    font-size: 15px;
+    height: 100vh;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+  }
+
+  /* ── Scanline overlay ── */
+  body::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background: repeating-linear-gradient(
+      0deg,
+      transparent,
+      transparent 2px,
+      rgba(0,0,0,0.08) 2px,
+      rgba(0,0,0,0.08) 4px
+    );
+    pointer-events: none;
+    z-index: 9999;
+  }
+
+  /* ── Auth screen ── */
+  #auth-screen {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 0;
+  }
+
+  .auth-logo {
+    font-family: var(--mono);
+    font-size: 52px;
+    color: var(--green);
+    letter-spacing: 6px;
+    text-shadow: 0 0 30px rgba(0,255,136,0.4);
+    animation: flicker 4s infinite;
+  }
+
+  @keyframes flicker {
+    0%,95%,100% { opacity: 1; }
+    96% { opacity: 0.7; }
+    97% { opacity: 1; }
+    98% { opacity: 0.5; }
+    99% { opacity: 1; }
+  }
+
+  .auth-sub {
+    font-family: var(--mono);
+    font-size: 11px;
+    color: var(--muted);
+    letter-spacing: 4px;
+    margin-top: 6px;
+    margin-bottom: 40px;
+  }
+
+  .auth-status {
+    font-family: var(--mono);
+    font-size: 14px;
+    color: var(--text);
+    margin-bottom: 20px;
+    min-height: 22px;
+    letter-spacing: 1px;
+    transition: color 0.2s;
+    text-align: center;
+  }
+  .auth-status.error { color: var(--red); }
+  .auth-status.ok    { color: var(--green); }
+
+  .auth-hint {
+    font-family: var(--mono);
+    font-size: 11px;
+    color: var(--muted);
+    margin-bottom: 24px;
+    text-align: center;
+    line-height: 1.8;
+  }
+
+  .auth-input-row {
+    display: flex;
+    gap: 10px;
+    width: 400px;
+  }
+
+  .auth-input-row input {
+    flex: 1;
+    background: var(--bg3);
+    border: 1px solid var(--green-dim);
+    color: var(--green);
+    font-family: var(--mono);
+    font-size: 15px;
+    padding: 10px 14px;
+    outline: none;
+    caret-color: var(--green);
+    letter-spacing: 1px;
+  }
+  .auth-input-row input:focus { border-color: var(--green); box-shadow: 0 0 10px rgba(0,255,136,0.15); }
+
+  .btn-green {
+    background: var(--green);
+    color: #000;
+    border: none;
+    font-family: var(--sans);
+    font-weight: 700;
+    font-size: 14px;
+    letter-spacing: 2px;
+    padding: 10px 22px;
+    cursor: pointer;
+    text-transform: uppercase;
+    transition: background 0.15s, transform 0.1s;
+  }
+  .btn-green:hover  { background: var(--green-dim); }
+  .btn-green:active { transform: scale(0.97); }
+
+  /* ── Main app layout ── */
+  #app-screen {
+    flex: 1;
+    display: none;
+    flex-direction: row;
+    overflow: hidden;
+    border-top: 1px solid var(--border);
+  }
+
+  /* ── Left sidebar ── */
+  #sidebar-left {
+    width: 200px;
+    background: var(--bg2);
+    border-right: 1px solid var(--border);
+    display: flex;
+    flex-direction: column;
+    flex-shrink: 0;
+  }
+
+  .sidebar-logo {
+    font-family: var(--mono);
+    font-size: 18px;
+    color: var(--green);
+    letter-spacing: 3px;
+    padding: 16px 14px 12px;
+    border-bottom: 1px solid var(--border);
+  }
+
+  .sidebar-section-label {
+    font-family: var(--mono);
+    font-size: 9px;
+    color: var(--muted);
+    letter-spacing: 3px;
+    padding: 12px 14px 6px;
+    text-transform: uppercase;
+  }
+
+  #public-btn {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 9px 14px;
+    background: var(--bg3);
+    border: none;
+    border-left: 3px solid var(--green);
+    color: var(--green);
+    font-family: var(--sans);
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+    text-align: left;
+    width: 100%;
+    letter-spacing: 1px;
+    transition: background 0.15s;
+    margin-bottom: 4px;
+  }
+  #public-btn:hover { background: var(--bg4); }
+  #public-btn.inactive { border-left-color: var(--border); color: var(--text); background: transparent; }
+  #public-btn.unread   { color: var(--yellow); border-left-color: var(--yellow); }
+
+  #conv-list { flex: 1; overflow-y: auto; padding-bottom: 8px; }
+  #conv-list::-webkit-scrollbar { width: 4px; }
+  #conv-list::-webkit-scrollbar-thumb { background: var(--border); }
+
+  .conv-btn {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 8px 14px;
+    background: transparent;
+    border: none;
+    border-left: 3px solid transparent;
+    color: var(--text);
+    font-family: var(--sans);
+    font-size: 13px;
+    font-weight: 500;
+    cursor: pointer;
+    text-align: left;
+    width: 100%;
+    letter-spacing: 0.5px;
+    transition: background 0.15s;
+  }
+  .conv-btn:hover   { background: var(--bg3); }
+  .conv-btn.active  { border-left-color: var(--green); color: var(--green); background: var(--bg3); }
+  .conv-btn.unread  { color: var(--yellow); border-left-color: var(--yellow); }
+
+  /* ── Center ── */
+  #center {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    background: var(--bg);
+  }
+
+  #conv-header {
+    padding: 12px 16px;
+    border-bottom: 1px solid var(--border);
+    font-family: var(--mono);
+    font-size: 13px;
+    color: var(--green);
+    letter-spacing: 2px;
+    background: var(--bg2);
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+  #conv-header::before {
+    content: '>';
+    color: var(--green-dim);
+  }
+
+  #chat-box {
+    flex: 1;
+    overflow-y: auto;
+    padding: 14px 16px;
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+  }
+  #chat-box::-webkit-scrollbar { width: 4px; }
+  #chat-box::-webkit-scrollbar-thumb { background: var(--border); }
+
+  .msg {
+    font-family: var(--mono);
+    font-size: 13px;
+    line-height: 1.6;
+    padding: 1px 0;
+    word-break: break-word;
+  }
+  .msg .ts     { color: var(--muted); }
+  .msg .sender { color: var(--green); font-weight: bold; }
+  .msg .body   { color: var(--text); }
+  .msg.system  { color: var(--muted); font-style: italic; text-align: center; padding: 4px 0; }
+  .msg.error-msg { color: var(--red); }
+
+  .msg .bold      { font-weight: bold; }
+  .msg .italic    { font-style: italic; }
+  .msg .code      { background: #1a2a1a; color: #88ff88; padding: 1px 5px; font-size: 12px; }
+  .msg .underline { text-decoration: underline; }
+
+  .download-link {
+    color: var(--blue);
+    text-decoration: underline;
+    cursor: pointer;
+    font-family: var(--mono);
+    font-size: 13px;
+  }
+  .download-link:hover { color: #88ccff; }
+
+  #typing-bar {
+    padding: 4px 16px;
+    font-family: var(--mono);
+    font-size: 11px;
+    color: var(--muted);
+    min-height: 20px;
+    letter-spacing: 1px;
+  }
+
+  #bottom-bar {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 10px 12px;
+    border-top: 1px solid var(--border);
+    background: var(--bg2);
+  }
+
+  #msg-input {
+    flex: 1;
+    background: var(--bg3);
+    border: 1px solid var(--border);
+    color: var(--text);
+    font-family: var(--mono);
+    font-size: 14px;
+    padding: 9px 12px;
+    outline: none;
+    caret-color: var(--green);
+    letter-spacing: 0.5px;
+    transition: border-color 0.15s;
+  }
+  #msg-input:focus { border-color: var(--green-dim); }
+
+  .bar-btn {
+    background: var(--bg3);
+    border: 1px solid var(--border);
+    color: var(--text);
+    font-family: var(--sans);
+    font-size: 13px;
+    font-weight: 600;
+    padding: 8px 14px;
+    cursor: pointer;
+    letter-spacing: 1px;
+    transition: background 0.15s, border-color 0.15s, color 0.15s;
+    white-space: nowrap;
+  }
+  .bar-btn:hover         { background: var(--bg4); border-color: var(--green-dim); color: var(--green); }
+  .bar-btn.send          { background: var(--green); color: #000; border-color: var(--green); font-weight: 700; }
+  .bar-btn.send:hover    { background: var(--green-dim); }
+  .bar-btn.danger        { border-color: var(--red); color: var(--red); }
+  .bar-btn.danger:hover  { background: rgba(255,68,85,0.1); }
+
+  /* ── Right sidebar ── */
+  #sidebar-right {
+    width: 180px;
+    background: var(--bg2);
+    border-left: 1px solid var(--border);
+    display: flex;
+    flex-direction: column;
+    flex-shrink: 0;
+  }
+
+  #online-list { flex: 1; overflow-y: auto; padding: 4px 0; }
+  #online-list::-webkit-scrollbar { width: 4px; }
+  #online-list::-webkit-scrollbar-thumb { background: var(--border); }
+
+  .user-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 7px 12px;
+    gap: 6px;
+  }
+  .user-dot {
+    width: 7px; height: 7px;
+    border-radius: 50%;
+    background: var(--green);
+    box-shadow: 0 0 6px rgba(0,255,136,0.6);
+    flex-shrink: 0;
+  }
+  .user-name {
+    font-family: var(--mono);
+    font-size: 12px;
+    color: var(--text);
+    flex: 1;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+  .dm-btn {
+    background: transparent;
+    border: 1px solid var(--border);
+    color: var(--muted);
+    font-size: 12px;
+    padding: 2px 7px;
+    cursor: pointer;
+    font-family: var(--mono);
+    transition: border-color 0.15s, color 0.15s;
+    flex-shrink: 0;
+  }
+  .dm-btn:hover { border-color: var(--green); color: var(--green); }
+
+  /* ── Emoji picker ── */
+  #emoji-picker {
+    display: none;
+    position: absolute;
+    bottom: 60px;
+    left: 210px;
+    background: var(--bg3);
+    border: 1px solid var(--border);
+    padding: 10px;
+    display: none;
+    flex-wrap: wrap;
+    width: 160px;
+    gap: 4px;
+    z-index: 100;
+  }
+  #emoji-picker.open { display: flex; }
+  .emoji-btn-pick {
+    background: transparent;
+    border: none;
+    font-size: 20px;
+    cursor: pointer;
+    padding: 4px;
+    border-radius: 4px;
+    transition: background 0.1s;
+    line-height: 1;
+  }
+  .emoji-btn-pick:hover { background: var(--bg4); }
+
+  /* ── File input hidden ── */
+  #file-input { display: none; }
+
+  /* ── Connection status bar ── */
+  #status-bar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 5px 14px;
+    background: var(--bg2);
+    border-bottom: 1px solid var(--border);
+    font-family: var(--mono);
+    font-size: 10px;
+    letter-spacing: 2px;
+  }
+  #conn-status { color: var(--muted); }
+  #conn-status.online { color: var(--green); }
+  #conn-status.offline { color: var(--red); }
+  #conn-btn-top {
+    background: transparent;
+    border: 1px solid var(--border);
+    color: var(--muted);
+    font-family: var(--mono);
+    font-size: 10px;
+    letter-spacing: 2px;
+    padding: 3px 10px;
+    cursor: pointer;
+    transition: all 0.15s;
+  }
+  #conn-btn-top:hover { border-color: var(--green); color: var(--green); }
+  #conn-btn-top.connected { border-color: var(--red); color: var(--red); }
+  #conn-btn-top.connected:hover { background: rgba(255,68,85,0.1); }
+
+  /* ── Age gate ── */
+  #age-screen {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 0;
+  }
+  .age-box {
+    border: 1px solid var(--green-dim);
+    padding: 40px 50px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 18px;
+    background: var(--bg2);
+    max-width: 440px;
+    width: 90%;
+  }
+  .age-title {
+    font-family: var(--mono);
+    font-size: 13px;
+    color: var(--green);
+    letter-spacing: 4px;
+    text-transform: uppercase;
+  }
+  .age-label {
+    font-family: var(--mono);
+    font-size: 12px;
+    color: var(--muted);
+    letter-spacing: 2px;
+    text-align: center;
+    line-height: 1.8;
+  }
+  .age-input {
+    background: var(--bg3);
+    border: 1px solid var(--green-dim);
+    color: var(--green);
+    font-family: var(--mono);
+    font-size: 22px;
+    padding: 10px 18px;
+    outline: none;
+    caret-color: var(--green);
+    letter-spacing: 4px;
+    text-align: center;
+    width: 200px;
+  }
+  .age-input:focus { border-color: var(--green); box-shadow: 0 0 10px rgba(0,255,136,0.15); }
+  .age-error {
+    font-family: var(--mono);
+    font-size: 12px;
+    color: var(--red);
+    letter-spacing: 2px;
+    min-height: 18px;
+    text-align: center;
+  }
+  #age-blocked {
+    display: none;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 20px;
+    flex: 1;
+  }
+  .blocked-title {
+    font-family: var(--mono);
+    font-size: 28px;
+    color: var(--red);
+    letter-spacing: 6px;
+  }
+  .blocked-sub {
+    font-family: var(--mono);
+    font-size: 12px;
+    color: var(--muted);
+    letter-spacing: 3px;
+    text-align: center;
+    line-height: 2;
+  }
+
+</style>
+</head>
+<body>
+
+<!-- ── AGE GATE ── -->
+<div id="age-screen">
+  <div class="age-box">
+    <div class="age-title">⚠ Age Verification Required</div>
+    <div class="age-label">
+      YOU MUST BE 18 OR OLDER TO USE SEC<br>
+      ENTER YOUR DATE OF BIRTH IN MM/DD/YYYY FORMAT
+    </div>
+    <input class="age-input" id="age-input" type="text" placeholder="MM/DD/YYYY"
+           maxlength="10" autocomplete="off" spellcheck="false">
+    <div class="age-error" id="age-error"></div>
+    <button class="btn-green" id="age-btn">VERIFY AGE</button>
+  </div>
+</div>
+
+<!-- ── BLOCKED SCREEN ── -->
+<div id="age-blocked">
+  <div class="blocked-title">ACCESS DENIED</div>
+  <div class="blocked-sub">
+    YOU MUST BE 18 OR OLDER<br>
+    TO ACCESS SEC.<br><br>
+    THIS PAGE WILL NOT PROCEED.
+  </div>
+</div>
+
+<!-- ── AUTH SCREEN ── -->
+<div id="auth-screen">
+  <div class="auth-logo">SEC</div>
+  <div class="auth-sub">SECURE // ENCRYPTED // CHAT</div>
+  <div class="auth-status" id="auth-status">CONNECTING...</div>
+  <div class="auth-hint" id="auth-hint">
+    TYPE &nbsp;<span style="color:var(--green)">L</span>&nbsp; TO LOGIN &nbsp;OR&nbsp; <span style="color:var(--green)">R</span>&nbsp; TO REGISTER<br>
+    THEN ENTER USERNAME AND PASSWORD WHEN PROMPTED<br> PASSWORD MUST BE 15 CHARACTERS INCLUDING 1 UPPER & LOWERCASE CHARACTER, 1 NUMBER, AND 1 SPECIAL CHARACTER
+  </div>
+  <div class="auth-input-row">
+    <input type="text" id="auth-input" placeholder="type here..." autocomplete="off" spellcheck="false">
+    <button class="btn-green" id="auth-send-btn">SEND</button>
+  </div>
+</div>
+
+<!-- ── MAIN APP ── -->
+<div id="app-screen">
+
+  <!-- Status bar -->
+  <div id="status-bar" style="position:absolute;top:0;left:0;right:0;z-index:10;">
+    <span id="conn-status" class="offline">● OFFLINE</span>
+    <button id="conn-btn-top">DISCONNECT</button>
+  </div>
+
+  <!-- Left sidebar -->
+  <div id="sidebar-left" style="margin-top:28px;">
+    <div class="sidebar-logo">SEC</div>
+    <div class="sidebar-section-label">channels</div>
+    <button id="public-btn">🌐 PUBLIC LOBBY</button>
+    <div class="sidebar-section-label">direct messages</div>
+    <div id="conv-list"></div>
+  </div>
+
+  <!-- Center -->
+  <div id="center" style="margin-top:28px;">
+    <div id="conv-header">PUBLIC LOBBY</div>
+    <div id="chat-box"></div>
+    <div id="typing-bar"></div>
+    <div id="bottom-bar">
+      <button class="bar-btn" id="emoji-toggle-btn">😀</button>
+      <input type="text" id="msg-input" placeholder="type a message..." autocomplete="off" spellcheck="false">
+      <button class="bar-btn send" id="send-btn">SEND</button>
+      <button class="bar-btn" id="file-btn">FILE</button>
+      <button class="bar-btn" id="clear-btn">CLEAR</button>
+      <button class="bar-btn danger" id="close-btn">CLOSE</button>
+    </div>
+    <div id="emoji-picker">
+      <button class="emoji-btn-pick">😀</button>
+      <button class="emoji-btn-pick">😂</button>
+      <button class="emoji-btn-pick">🚀</button>
+      <button class="emoji-btn-pick">🔥</button>
+      <button class="emoji-btn-pick">👍</button>
+      <button class="emoji-btn-pick">🔒</button>
+      <button class="emoji-btn-pick">✅</button>
+      <button class="emoji-btn-pick">👀</button>
+      <button class="emoji-btn-pick">💻</button>
+      <button class="emoji-btn-pick">💡</button>
+      <button class="emoji-btn-pick">😎</button>
+      <button class="emoji-btn-pick">🤔</button>
+    </div>
+  </div>
+
+  <!-- Right sidebar -->
+  <div id="sidebar-right" style="margin-top:28px;">
+    <div class="sidebar-section-label">online users</div>
+    <div id="online-list"></div>
+  </div>
+
+</div>
+
+<input type="file" id="file-input">
+
+<!-- Firebase SDK for file storage -->
+<script src="https://www.gstatic.com/firebasejs/10.13.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.13.0/firebase-storage-compat.js"></script>
+<script>
+const firebaseConfig = {
+  apiKey: "AIzaSyC-QWMrLq6i_y-9CBle2HFRtAiw8Ru77Io",
+  authDomain: "sec-chat-b57b5.firebaseapp.com",
+  projectId: "sec-chat-b57b5",
+  storageBucket: "sec-chat-b57b5.firebasestorage.app",
+  messagingSenderId: "553349947067",
+  appId: "1:553349947067:web:49dacfb778c8905204939e"
+};
+firebase.initializeApp(firebaseConfig);
+const fb_storage = firebase.storage();
+</script>
+
+<script>
+// server config
+const HOST = "phase3test-gwl1.onrender.com";
+const WSS_URL = `wss://${HOST}/ws`;
+const SHARED_PASSPHRASE = "ChangeThisToAStrongPassphrase!"; // must match server
+
+// end to end encryption
+let AES_KEY = null;
+
+async function derive_key(passphrase) {
+  const enc = new TextEncoder();
+  const key_material = await crypto.subtle.importKey(
+    "raw", enc.encode(passphrase), "PBKDF2", false, ["deriveKey"]
+  );
+  return crypto.subtle.deriveKey(
+    { name: "PBKDF2", salt: enc.encode("secchat_salt_v1"), iterations: 100000, hash: "SHA-256" },
+    key_material,
+    { name: "AES-GCM", length: 256 },
+    false,
+    ["encrypt", "decrypt"]
+  );
+}
+
+async function encrypt_msg(plaintext) {
+  const iv = crypto.getRandomValues(new Uint8Array(12));
+  const enc = new TextEncoder();
+  const ct = await crypto.subtle.encrypt({ name: "AES-GCM", iv }, AES_KEY, enc.encode(plaintext));
+  return {
+    encrypted_body: btoa(String.fromCharCode(...new Uint8Array(ct))),
+    iv: btoa(String.fromCharCode(...iv))
+  };
+}
+
+async function decrypt_msg(b64ct, b64iv) {
+  try {
+    const ct = Uint8Array.from(atob(b64ct), c => c.charCodeAt(0));
+    const iv = Uint8Array.from(atob(b64iv), c => c.charCodeAt(0));
+    const pt = await crypto.subtle.decrypt({ name: "AES-GCM", iv }, AES_KEY, ct);
+    return new TextDecoder().decode(pt);
+  } catch { return "[encrypted – wrong key]"; }
+}
+
+// global
+let ws = null, connected = false, auto_reconnect = true;
+let my_username = "", app_state = "pre_auth";
+let active_conv = "public";
+let chat_histories = { public: [] };
+let conv_partners = {};
+let received_files = {};
+let typing_timer = null, currently_typing = false;
+let last_send_time = 0;
+const SEND_RATE = 1000;
+const MAX_FILE = 10 * 1024 * 1024;
+const BLOCKED_EXT = new Set([".exe",".bat",".sh",".ps1",".cmd",".msi",".dll",".vbs"]);
+
+// elements
+const auth_screen = document.getElementById("auth-screen");
+const app_screen = document.getElementById("app-screen");
+const auth_status = document.getElementById("auth-status");
+const auth_input = document.getElementById("auth-input");
+const auth_send_btn = document.getElementById("auth-send-btn");
+const chat_box = document.getElementById("chat-box");
+const msg_input = document.getElementById("msg-input");
+const send_btn = document.getElementById("send-btn");
+const file_btn = document.getElementById("file-btn");
+const clear_btn = document.getElementById("clear-btn");
+const close_btn = document.getElementById("close-btn");
+const conv_header = document.getElementById("conv-header");
+const conv_list = document.getElementById("conv-list");
+const online_list = document.getElementById("online-list");
+const public_btn = document.getElementById("public-btn");
+const typing_bar = document.getElementById("typing-bar");
+const conn_status = document.getElementById("conn-status");
+const conn_btn_top = document.getElementById("conn-btn-top");
+const file_input = document.getElementById("file-input");
+const emoji_picker = document.getElementById("emoji-picker");
+const emoji_toggle = document.getElementById("emoji-toggle-btn");
+
+function show_auth() {
+  if (age_screen.style.display === "none" && age_blocked.style.display !== "flex") {
+    auth_screen.style.display = "flex";
+  }
+  app_screen.style.display = "none";
+  auth_input.focus();
+}
+
+function show_app() {
+  auth_screen.style.display = "none";
+  app_screen.style.display = "flex";
+  app_screen.style.position = "relative";
+  msg_input.focus();
+}
+
+function set_auth_status(msg, type = "") {
+  auth_status.textContent = msg;
+  auth_status.className   = "auth-status " + type;
+  if (type === "error") {
+    let count = 0;
+    const flash = setInterval(() => {
+      auth_status.style.opacity = auth_status.style.opacity === "0" ? "1" : "0";
+      if (++count >= 6) { clearInterval(flash); auth_status.style.opacity = "1"; }
+    }, 150);
+  }
+}
+
+// Websocket
+function connect() {
+  if (ws && ws.readyState === WebSocket.OPEN) return;
+  try {
+    ws = new WebSocket(WSS_URL);
+    ws.onopen = on_open;
+    ws.onclose = on_close;
+    ws.onerror = on_error;
+    ws.onmessage = on_message;
+  } catch(e) { schedule_reconnect(); }
+}
+
+function schedule_reconnect() {
+  if (!auto_reconnect) return;
+  setTimeout(connect, 3000);
+}
+
+function on_open() {
+  connected = true;
+  app_state = "pre_auth";
+  conn_status.textContent = "● ONLINE";
+  conn_status.className = "online";
+  conn_btn_top.textContent = "DISCONNECT";
+  conn_btn_top.className = "connected";
+  show_auth();
+}
+
+function on_close() {
+  connected = false;
+  conn_status.textContent = "● OFFLINE";
+  conn_status.className = "offline";
+  conn_btn_top.textContent = "CONNECT";
+  conn_btn_top.className = "";
+  typing_bar.textContent = "";
+  schedule_reconnect();
+}
+
+function on_error() { schedule_reconnect(); }
+
+function on_message(evt) {
+  let payload;
+  try { payload = JSON.parse(evt.data); }
+  catch { append_raw(evt.data); return; }
+
+  const t = payload.type || "";
+  const handlers = {
+    auth_prompt: () => set_auth_status(payload.msg, ""),
+    auth_error: () => set_auth_status("⚠  " + payload.msg, "error"),
+    auth_ok: () => set_auth_status(payload.msg, "ok"),
+    init: () => handle_init(payload),
+    userlist: () => update_online_list(payload.names),
+    public_msg: () => handle_public_msg(payload),
+    system: () => handle_system_msg(payload),
+    chat: () => handle_dm_msg(payload),
+    new_conv: () => handle_new_conv(payload),
+    file: () => handle_file_payload(payload),
+    typing: () => handle_typing_notif(payload),
+    error: () => append_raw("[Server] " + payload.msg),
+  };
+  if (handlers[t]) handlers[t]();
+}
+
+function send_raw(text) {
+  if (!ws || ws.readyState !== WebSocket.OPEN) return;
+  ws.send(text);
+}
+
+function send_json(obj) {
+  if (!ws || ws.readyState !== WebSocket.OPEN) return;
+  ws.send(JSON.stringify(obj));
+}
+
+// authentication
+function auth_send() {
+  const text = auth_input.value.trim();
+  if (!text || !connected) return;
+  auth_input.value = "";
+  send_raw(text);
+}
+
+auth_send_btn.addEventListener("click", auth_send);
+auth_input.addEventListener("keydown", e => { if (e.key === "Enter") auth_send(); });
+
+// setup
+function handle_init(p) {
+  my_username = p.username || "";
+  app_state = "in_app";
+  active_conv = "public";
+  chat_histories = { public: [] };
+  conv_partners = {};
+  conv_list.innerHTML = "";
+
+  for (const entry of (p.public_history || [])) {
+    chat_histories.public.push(entry);
+  }
+  for (const conv of (p.conversations || [])) {
+    const { conv_id, with: partner, history } = conv;
+    conv_partners[conv_id] = partner;
+    chat_histories[conv_id] = history || [];
+    add_conv_to_sidebar(conv_id, partner);
+  }
+
+  show_app();
+  switch_to_public();
+}
+
+// getting messages
+function handle_public_msg(p) {
+  chat_histories.public.push(p);
+  if (active_conv === "public") render_entry(p);
+  else public_btn.classList.add("unread");
+}
+
+function handle_system_msg(p) {
+  const entry = { type: "system", msg: p.msg };
+  chat_histories.public.push(entry);
+  if (active_conv === "public") render_entry(entry);
+}
+
+function handle_dm_msg(p) {
+  const cid = p.conv_id || "";
+  (chat_histories[cid] = chat_histories[cid] || []).push(p);
+  if (active_conv === cid) render_entry(p);
+  else flash_conv_btn(cid);
+}
+
+function handle_new_conv(p) {
+  const { conv_id, with: partner, history } = p;
+  conv_partners[conv_id] = partner;
+  chat_histories[conv_id] = history || [];
+  add_conv_to_sidebar(conv_id, partner);
+  switch_conv(conv_id);
+}
+
+async function handle_file_payload(p) {
+  const filename = p.name, sender = p.from || "unknown", convId = p.conv_id;
+  const fid = Object.keys(received_files).length;
+  // store metadata; actual bytes will be fetched/decrypted when user clicks save
+  received_files[fid] = { name: filename, url: p.url, iv: p.iv, data: null };
+  const target = convId || "public";
+  const entry = { type: "file", from: sender, file_id: fid, name: filename };
+  (chat_histories[target] = chat_histories[target] || []).push(entry);
+  if (active_conv === target) render_entry(entry);
+  else if (target !== "public") flash_conv_btn(target);
+  else public_btn.classList.add("unread");
+}
+
+function handle_typing_notif(p) {
+  const conv_id = p.conv_id || "public";
+  const users = (p.users || []).filter(u => u !== my_username);
+  if (active_conv !== conv_id) return;
+  typing_bar.textContent = users.length
+    ? `${users.join(", ")} ${users.length === 1 ? "is" : "are"} typing...`
+    : "";
+}
+
+async function render_entry(entry) {
+  const t = entry.type || "";
+  if (t === "system") {
+    append_system_msg(entry.msg); return;
+  }
+  if (t === "file") {
+    append_file_msg(entry.from, entry.name, entry.file_id); return;
+  }
+  if (t === "error-msg") {
+    const el = document.createElement("div");
+    el.className = "msg error-msg";
+    el.style.fontFamily = "var(--mono)";
+    el.style.fontSize = "13px";
+    el.textContent = entry.body;
+    chat_box.appendChild(el);
+    chat_box.scrollTop = chat_box.scrollHeight;
+    return;
+  }
+  const enc = entry.encrypted_body || "";
+  const iv = entry.iv || "";
+  const body = (enc && iv) ? await decrypt_msg(enc, iv) : (entry.body || "");
+  const ts = entry.ts || "";
+  const from = entry.from || "?";
+  append_chat_msg(ts, from, body);
+}
+
+function append_chat_msg(ts, sender, body) {
+  const el = document.createElement("div");
+  el.className = "msg";
+  const ts_el = document.createElement("span");
+  ts_el.className = "ts";
+  ts_el.textContent = `[${ts}] `;
+  const sn_el = document.createElement("span");
+  sn_el.className = "sender";
+  sn_el.textContent = sender + ": ";
+  const bd_el = document.createElement("span");
+  bd_el.className = "body";
+  bd_el.innerHTML = format_body(body);
+  el.append(ts_el, sn_el, bd_el);
+  chat_box.appendChild(el);
+  chat_box.scrollTop = chat_box.scrollHeight;
+}
+
+function append_system_msg(msg) {
+  const el = document.createElement("div");
+  el.className = "msg system";
+  el.textContent = `*** ${msg} ***`;
+  chat_box.appendChild(el);
+  chat_box.scrollTop = chat_box.scrollHeight;
+}
+
+function append_file_msg(sender, name, fid) {
+  const el = document.createElement("div");
+  el.className = "msg";
+  el.innerHTML = `<span class="ts"></span><span class="sender">${esc_html(sender)}</span><span class="body"> sent a file: <span class="download-link" data-fid="${fid}">${esc_html(name)}</span></span>`;
+  el.querySelector(".download-link").addEventListener("click", () => save_file(fid));
+  chat_box.appendChild(el);
+  chat_box.scrollTop = chat_box.scrollHeight;
+}
+
+function append_raw(text) {
+  const el = document.createElement("div");
+  el.className = "msg";
+  el.style.color = "var(--muted)";
+  el.style.fontFamily = "var(--mono)";
+  el.style.fontSize = "13px";
+  el.textContent = text;
+  chat_box.appendChild(el);
+  chat_box.scrollTop = chat_box.scrollHeight;
+}
+
+// format
+function format_body(text) {
+  let html = esc_html(text);
+  html = html.replace(/\*([^*]+)\*/g, '<span class="bold">$1</span>');
+  html = html.replace(/_([^_]+)_/g, '<span class="italic">$1</span>');
+  html = html.replace(/`([^`]+)`/g, '<span class="code">$1</span>');
+  html = html.replace(/~([^~]+)~/g, '<span class="underline">$1</span>');
+  return html;
+}
+
+function esc_html(str) {
+  return str.replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;");
+}
+
+// dms
+function add_conv_to_sidebar(conv_id, partner) {
+  if (document.querySelector(`[data-cid="${conv_id}"]`)) return;
+  const btn = document.createElement("button");
+  btn.className = "conv-btn";
+  btn.dataset.cid = conv_id;
+  btn.textContent = "💬 " + partner;
+  btn.addEventListener("click", () => switch_conv(conv_id));
+  conv_list.appendChild(btn);
+}
+
+function flash_conv_btn(conv_id) {
+  const btn = document.querySelector(`[data-cid="${conv_id}"]`);
+  if (btn) btn.classList.add("unread");
+}
+
+function switch_conv(conv_id) {
+  active_conv = conv_id;
+  const partner = conv_partners[conv_id] || conv_id;
+  conv_header.textContent = "DM — " + partner.toUpperCase();
+  public_btn.classList.add("inactive");
+  public_btn.classList.remove("unread");
+  document.querySelectorAll(".conv-btn").forEach(b => {
+    b.classList.toggle("active", b.dataset.cid === conv_id);
+    if (b.dataset.cid === conv_id) b.classList.remove("unread");
+  });
+  typing_bar.textContent = "";
+  reload_chat();
+}
+
+function switch_to_public() {
+  active_conv = "public";
+  conv_header.textContent = "PUBLIC LOBBY";
+  public_btn.classList.remove("inactive","unread");
+  document.querySelectorAll(".conv-btn").forEach(b => b.classList.remove("active"));
+  typing_bar.textContent = "";
+  reload_chat();
+}
+
+async function reload_chat() {
+  chat_box.innerHTML = "";
+  const history = chat_histories[active_conv] || [];
+  for (const entry of history) await render_entry(entry);
+}
+
+function request_new_chat(target) {
+  if (!connected) return;
+  send_json({ type: "create_conv", with: target });
+}
+
+// message sending
+async function send_message() {
+  const msg = msg_input.value.trim();
+  if (!msg || !connected) return;
+
+  if (msg.toLowerCase() === "/help") {
+    append_system_msg("Formatting: *bold* _italic_ `code` ~underline~ | Click DM next to a user to message them");
+    msg_input.value = ""; return;
+  }
+
+  const now = Date.now();
+  if (now - last_send_time < SEND_RATE) {
+    append_system_msg("Slow down – one message per second."); return;
+  }
+  last_send_time = now;
+  stop_typing();
+  msg_input.value = "";
+
+  const { encrypted_body, iv } = await encrypt_msg(msg);
+  if (active_conv === "public") {
+    send_json({ type: "public_msg", encrypted_body, iv });
+  } else {
+    send_json({ type: "send_msg", conv_id: active_conv, encrypted_body, iv });
+  }
+}
+
+send_btn.addEventListener("click", send_message);
+msg_input.addEventListener("keydown", e => { if (e.key === "Enter") send_message(); });
+
+// typing shower
+msg_input.addEventListener("input", () => {
+  if (app_state !== "in_app" || !connected) return;
+  if (!currently_typing) { currently_typing = true; send_json({ type:"typing", conv_id:active_conv, typing:true }); }
+  clearTimeout(typing_timer);
+  typing_timer = setTimeout(stop_typing, 2000);
+});
+
+function stop_typing() {
+  if (!currently_typing) return;
+  currently_typing = false;
+  send_json({ type: "typing", conv_id: active_conv, typing: false });
+}
+
+// file sender
+file_btn.addEventListener("click", () => file_input.click());
+file_input.addEventListener("change", async () => {
+  const file = file_input.files[0];
+  if (!file) return;
+  file_input.value = "";
+  const ext = file.name.slice(file.name.lastIndexOf(".")).toLowerCase();
+  if (BLOCKED_EXT.has(ext)) { alert(`File type '${ext}' is not allowed.`); return; }
+  if (file.size > MAX_FILE)  { append_system_msg("[File too large – 10 MB max]"); return; }
+
+  append_system_msg(`[Uploading ${file.name}...]`);
+  try {
+    // 1. Read file into memory
+    const file_bytes = new Uint8Array(await file.arrayBuffer());
+
+    // 2. Encrypt with AES-GCM (same key as messages)
+    const iv = crypto.getRandomValues(new Uint8Array(12));
+    const ct_buf = await crypto.subtle.encrypt({ name: "AES-GCM", iv }, AES_KEY, file_bytes);
+    const ct_blob = new Blob([ct_buf], { type: "application/octet-stream" });
+
+    // 3. Upload encrypted blob to Firebase
+    const fid = `${Date.now()}_${Math.random().toString(36).slice(2, 10)}`;
+    const ref = fb_storage.ref(`secchat/${fid}`);
+    await ref.put(ct_blob);
+    const url = await ref.getDownloadURL();
+
+    // 4. Send only metadata + URL + IV over WebSocket
+    const iv_b64 = btoa(String.fromCharCode(...iv));
+    send_json({
+      type: "file",
+      name: file.name,
+      size: file.size,
+      mime: file.type,
+      url: url,
+      iv: iv_b64,
+      conv_id: active_conv === "public" ? null : active_conv
+    });
+    append_system_msg(`[Sent file: ${file.name}]`);
+  } catch (err) {
+    console.error("Upload failed:", err);
+    append_system_msg(`[Upload failed: ${err.message}]`);
+  }
+});
+
+async function save_file(fid) {
+  const info = received_files[fid];
+  if (!info) return;
+  try {
+    let plain;
+    if (info.data) {
+      // already decrypted (cached)
+      plain = info.data;
+    } else {
+      // fetch encrypted blob from Firebase, decrypt
+      append_system_msg(`[Downloading ${info.name}...]`);
+      const resp = await fetch(info.url);
+      if (!resp.ok) throw new Error(`HTTP ${resp.status}`);
+      const ct_buf = await resp.arrayBuffer();
+      const iv = Uint8Array.from(atob(info.iv), c => c.charCodeAt(0));
+      const pt_buf = await crypto.subtle.decrypt({ name: "AES-GCM", iv }, AES_KEY, ct_buf);
+      plain = new Uint8Array(pt_buf);
+      info.data = plain; // cache for next time
+    }
+    const blob = new Blob([plain]);
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url; a.download = info.name; a.click();
+    URL.revokeObjectURL(url);
+  } catch (err) {
+    console.error("Download failed:", err);
+    append_system_msg(`[Download failed: ${err.message}]`);
+  }
+}
+
+// emojis
+emoji_toggle.addEventListener("click", e => {
+  e.stopPropagation();
+  emoji_picker.classList.toggle("open");
+});
+document.querySelectorAll(".emoji-btn-pick").forEach(btn => {
+  btn.addEventListener("click", () => {
+    const pos = msg_input.selectionStart;
+    const val = msg_input.value;
+    msg_input.value = val.slice(0,pos) + btn.textContent + val.slice(pos);
+    msg_input.selectionStart = msg_input.selectionEnd = pos + btn.textContent.length;
+    msg_input.focus();
+    emoji_picker.classList.remove("open");
+  });
+});
+document.addEventListener("click", () => emoji_picker.classList.remove("open"));
+
+// online users
+function update_online_list(names) {
+  online_list.innerHTML = "";
+  for (const name of names) {
+    const row = document.createElement("div");
+    row.className = "user-row";
+    const dot = document.createElement("div");
+    dot.className = "user-dot";
+    const span = document.createElement("span");
+    span.className = "user-name";
+    span.textContent = name;
+    row.append(dot, span);
+    if (name !== my_username) {
+      const btn = document.createElement("button");
+      btn.className = "dm-btn";
+      btn.textContent = "DM";
+      btn.addEventListener("click", () => request_new_chat(name));
+      row.appendChild(btn);
+    }
+    online_list.appendChild(row);
+  }
+}
+
+// connection handler
+conn_btn_top.addEventListener("click", () => {
+  if (connected) {
+    auto_reconnect = false;
+    ws.close();
+    conn_btn_top.textContent = "CONNECT";
+    conn_btn_top.className = "";
+  } else {
+    auto_reconnect = true;
+    connect();
+  }
+});
+
+// buttons
+public_btn.addEventListener("click", switch_to_public);
+clear_btn.addEventListener("click", () => { chat_box.innerHTML = ""; });
+close_btn.addEventListener("click", () => { if (confirm("Close Sec?")) { auto_reconnect=false; if(ws) ws.close(); window.close(); } });
+
+
+// age page
+const age_screen = document.getElementById("age-screen");
+const age_blocked = document.getElementById("age-blocked");
+const age_input = document.getElementById("age-input");
+const age_error = document.getElementById("age-error");
+const age_btn = document.getElementById("age-btn");
+
+// DOB format
+age_input.addEventListener("input", () => {
+  let v = age_input.value.replace(/\D/g, ""); // digits only
+  if (v.length > 2) v = v.slice(0,2) + "/" + v.slice(2);
+  if (v.length > 4) v = v.slice(0,5) + "/" + v.slice(5);
+  age_input.value = v.slice(0, 10);
+});
+
+age_input.addEventListener("keydown", e => { if (e.key === "Enter") verify_age(); });
+age_btn.addEventListener("click", verify_age);
+
+function verify_age() {
+  const val = age_input.value.trim();
+  const parts = val.split("/");
+  if (parts.length !== 3 || parts[0].length !== 2 || parts[1].length !== 2 || parts[2].length !== 4) {
+    show_age_error("ENTER DATE AS MM/DD/YYYY"); return;
+  }
+  const month = parseInt(parts[0], 10);
+  const day = parseInt(parts[1], 10);
+  const full_year = parseInt(parts[2], 10);
+  if (month < 1 || month > 12 || day < 1 || day > 31) {
+    show_age_error("INVALID DATE"); return;
+  }
+  const dob = new Date(full_year, month - 1, day);
+  const today = new Date();
+  let age = today.getFullYear() - dob.getFullYear();
+  const month_diff = today.getMonth() - dob.getMonth();
+  if (month_diff < 0 || (month_diff === 0 && today.getDate() < dob.getDate())) age--;
+  if (isNaN(age) || age < 0 || age > 120) {
+    show_age_error("INVALID DATE"); return;
+  }
+  if (age < 18) {
+    age_screen.style.display = "none";
+    age_blocked.style.display = "flex";
+    return;
+  }
+  // over 18 auth
+  age_screen.style.display = "none";
+  auth_screen.style.display = "flex";
+  auth_input.focus();
+}
+
+function show_age_error(msg) {
+  age_error.textContent = msg;
+  age_input.style.borderColor = "var(--red)";
+  setTimeout(() => {
+    age_error.textContent = "";
+    age_input.style.borderColor = "var(--green-dim)";
+  }, 2500);
+}
+
+// key
+(async () => {
+  AES_KEY = await derive_key(SHARED_PASSPHRASE);
+  auth_screen.style.display = "none";
+  age_screen.style.display = "flex";
+  connect();
+})();
+</script>
+</body>
+</html>

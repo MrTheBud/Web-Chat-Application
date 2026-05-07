@@ -1,6 +1,6 @@
-# Project 1 Pt. 2 - Client-Server Communication using Web Sockets 🔌💻🔌
+# Capstone Project **SEC** Secure / Encrypted / Chat
 
-A real-time communication tool that is developed in Python, called **SecureChat**, that allows remote teams to communicate in a secure and efficient communication. 
+A real-time communication tool that is developed in Python/Html, called **SEC**, that allows anyone to communicate in a secure and efficient way whether in public or private message.
 
 ## Developers 👤
 
@@ -15,136 +15,16 @@ A real-time communication tool that is developed in Python, called **SecureChat*
 
 - A client-server WebSocket-based chat system enables team members to communicate in real time. To accomplish this, the requirements are as follows:
 
-1. **Real-Time Messaging** - messages instantly appear
-2. **Secure Conenction** - wss://
-3. **User Authentication** - Basic authentication method
-4. **Rate Limiting** - Implement anti spamming method
-5. **Connection Handling** - Detects and connects connections as well as reconnects in terms of interruptions
+1. **Real-Time Messaging** - Messages instantly appear
+2. **Backend Server** - Python, Aiohttp, Asyncio, Hosted on Render
+3. **Frontend** - Html, InfinityFree
+4. **Secure File Sharing** - Firebase
+5. **User Authentication** - Basic authentication method
+6. **Rate Limiting** - Implement anti spamming method
+7. **24/7 Uptime** - Uptime Robot Pinging the Server every 10 minutes, and Render starter Tier
 
-## Updates Since Previous Version 🆕
+## How to Run
 
-1. **Improved User-GUI** - enables communication with more than just two users
-2. **File Sharing - enables** securely sending different files
-3. **Emoji / Rich Media Support** - allows unicode emoji usage as well as basic text formatting
-4. **User authentication** - users required to create account, stored data is encrypted, and a hashing algorithm is used
-5. **Security Hardening** - implemented brute-force for logins, logging system for chats, and end-to-end encryption 
-
-## How to Run - Option 1: VM Machines 💡
-
-For a Windows 11 OS with the goal being to run two clients on the same device, follow these instructions 
-
-1. Download Python and make sure it is in PATH
-
- * If do not have Python, download from https://python.org/
- * To verify, open Command Prompt and run either of the following commands:
-
-         py -m pip install websockets
-      
-         python --version
-
-  ![Screenshot of Step](images/1.jpg)
-
-2. Power on Visual Studio and open up a Project labled "Project 1 - Client-Server Communication using Web Sockets"
-
-
-
-3. Move Server.py, Client.py, cert.pem, and key.pem into the folder containing the project. Open both Server.py and Client.py
-
-  ![Screenshot of Step](images/2.jpg)
-
-4. Install Required Python Libraries
-
-    * Click on the "View" tab on top of Visual Studio (VS) and then press the option labeled "Terminal"
-    * Make sure that terminal has correct path:
-
-  ![Screenshot of Step](images/3.jpg)
-
-  ![Screenshot of Step](images/4.jpg)
-
- * Type into the terminal the following command and press Enter
-
-         py -m pip install websockets
-
-  ![Screenshot of Step](images/5.jpg)
-
- * Type into the terminal the following command and press Enter
-
-         py -m pip install websocket-client
-
-  ![Screenshot of Step](images/6.jpg)
-
-5. Run Server.py by typing into the terminal and pressing Enter the following command:
-
-         py server.py
-
-  ![Screenshot of Step](images/7.jpg)
-
-6. Check your IP Address by openning Command Prompt and typing in the following command:
-
-         ipconfig
-
-  ![Screenshot of Step](images/8.jpg)
-
-7. Change to Client.py and input the IP Address into "Host = [insert IP Address here]"
-
-      * Please note, if you are running the client and server on the same device, you can use either of the following:
-  
-         * "Host = localhost"
-
-         * "Host = 127.0.0.1"
-  
-  ![Screenshot of Step](images/9.jpg)
-
-8. Run Client.py in a new terminal
-
-* Double right click and run "client.exe" file **NEED TO ADD UPDATE IMAGE HERE**
-
-  ![Screenshot of Step](images/10.jpg)
- 
-9. Register a User (for the first time you run the client on the server)
-
-* Press "R", and then input a username and password
-         * Password Must contain
-         * 15 Characters TOTAL
-         * Min 1 uppercase letter, 1 lowercase letter, 1 number, and 1 special character
-        
-  ![Screenshot of Step](images/11.jpg)
-  
-10) Login as User:
-
-      * Press "L", and then input username and password
-      * Once logged in, you will be able to send messages
-
-  ![Screenshot of Step](images/12.jpg)
-   
-11. Run Client.py in a new terminal to create another user
-
-* Double right click and run "client.exe" file again       
-* Repeat steps 10 - 11 for a second client
-
-  ![Screenshot of Step](images/12.jpg)
-
-12. Enjoy the connection: typing in either will have the message reach the other
-
-  ![Screenshot of Step](images/13.jpg)
-
-## Customization 🔍
-
-* Another method that can used for the testing the communication is to run the second client on a VM
-
-* Additionally, two users who are on the same network can connect using client.py and server.py by using the following process:
-
-1. One user would run server.py and client.py
-2. That user would share his IP address to another user who is on the same network as them
-3. This second user would then add that IP to the "Host = ..." section in client.py and run client.py
-4. If the regular process of creating a user and logging is done, communication will occur!
- 
-## Technical Details 📃
-
-* OS Types: Windows 11 and Linux 2022 (for Linux based testing)
-* Python version: 3.9.13 and beyond
-* Websockets: 15.0.1
-* Websockets clients: 1.9.0
-* Visual Studio [Version: VS 2022 (x64) Version 17.14.26 for demo] and Visual Studio Code
-
-
+1. Go to https://sec.infinityfreeapp.com/ any web browser
+2. Fill Out Your Birthdate
+<img width="1920" height="1032" alt="image" src="https://github.com/user-attachments/assets/b08c5d97-3d0d-48c1-9ec7-7fcd81ea9569" />

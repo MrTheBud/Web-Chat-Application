@@ -27,4 +27,18 @@ A real-time communication tool that is developed in Python/Html, called **SEC**,
 
 1. Go to https://sec.infinityfreeapp.com/ any web browser
 2. Fill Out Your Birthdate
-<img width="1920" height="1032" alt="image" src="https://github.com/user-attachments/assets/b08c5d97-3d0d-48c1-9ec7-7fcd81ea9569" />
+   <img width="445" height="342" alt="image" src="https://github.com/user-attachments/assets/92841620-b558-4bbb-a2bb-1df91d7e4b3c" />
+**MUST BE OLDER THAN 18**
+
+3. Type R in the chat box to register an account
+   <img width="763" height="496" alt="image" src="https://github.com/user-attachments/assets/83e6ff9a-c4e4-4675-8839-9463187be0e0" />
+   **Follow The Password Requirement On Screen**
+   **If Requirements Not Met The Prompt Will Blink**
+
+5. Type L with the same credential you used to register
+   **If Credential Do Not Match The Prompt Will Blink**
+
+6. CHAT
+   <img width="1920" height="1032" alt="image" src="https://github.com/user-attachments/assets/58a5d265-61c9-4f36-b5c1-998277770454" />
+
+

@@ -1,0 +1,7 @@
+.env
+.env.*
+!.env.example
+*service-account*.json
+*serviceAccount*.json
+*.pem
+*.p12

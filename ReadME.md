@@ -41,4 +41,21 @@ A real-time communication tool that is developed in Python/Html, called **SEC**,
 6. CHAT
    <img width="1920" height="1032" alt="image" src="https://github.com/user-attachments/assets/58a5d265-61c9-4f36-b5c1-998277770454" />
 
+## What Has Changed
 
+This repository retains the original team project and its core chat features. The following updates clarify and change how the current version handles encryption and configuration:
+
+- The client now asks for a private passphrase of at least 16 characters after age verification. This replaces the hard-coded shared passphrase used by an earlier version.
+- The browser derives an AES-GCM encryption key from that passphrase and uses it for chat messages and files. The passphrase is not sent to the chat server or saved by the client. Users who need to read the same content must enter the same passphrase.
+- `.gitignore` now excludes environment files and common service-account/private-key files to help prevent accidental additions. This does not remove files that are already tracked or secrets in Git history.
+- The security notes below distinguish public Firebase client configuration from private server credentials and explain that Firebase Storage access must be controlled by Firebase security rules.
+
+**Legacy data and repository history:** Earlier public commits include the former hard-coded chat passphrase. Treat messages and files encrypted with that legacy passphrase as potentially readable by anyone who can access their ciphertext. Changing the current client does not erase that passphrase from existing Git history or re-encrypt old data.
+
+## Security and Configuration
+
+- After age verification, enter a private passphrase of at least 16 characters. Everyone in a conversation must enter the exact same passphrase to read its messages and files. Choose a long, unique phrase and share it only through a trusted channel. The app does not save the phrase or send it to the chat server.
+- The shared passphrase is held in browser memory for the current page session. If it is lost or changed, messages and files encrypted with the previous phrase cannot be read.
+- `DATABASE_URL` is read from the server environment; do not put database credentials, service-account keys, or other server secrets in frontend files or commit them to Git.
+- The Firebase web configuration in `frontend_sec.html` identifies the Firebase project and is public client configuration, not a private credential. Restrict its API key where applicable and configure Firebase Storage security rules in Firebase Console; the client configuration itself does not control access.
+- The public deployment host and project URLs are identifiers, not credentials. Protect access through server authorization, Firebase rules, and deployment settings rather than relying on hiding public URLs.

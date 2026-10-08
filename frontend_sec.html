@@ -469,6 +469,13 @@
     justify-content: center;
     gap: 0;
   }
+  #encryption-screen {
+    flex: 1;
+    display: none;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+  }
   .age-box {
     border: 1px solid var(--green-dim);
     padding: 40px 50px;
@@ -508,6 +515,7 @@
     text-align: center;
     width: 200px;
   }
+  #encryption-passphrase { width: min(360px, 100%); }
   .age-input:focus { border-color: var(--green); box-shadow: 0 0 10px rgba(0,255,136,0.15); }
   .age-error {
     font-family: var(--mono);
@@ -566,6 +574,23 @@
     YOU MUST BE 18 OR OLDER<br>
     TO ACCESS SEC.<br><br>
     THIS PAGE WILL NOT PROCEED.
+  </div>
+</div>
+
+<!-- ── ENCRYPTION PASSPHRASE ── -->
+<div id="encryption-screen">
+  <div class="age-box">
+    <div class="age-title">Chat Encryption</div>
+    <div class="age-label">
+      ENTER A LONG, PRIVATE PASSPHRASE (AT LEAST 16 CHARACTERS).<br>
+      EVERYONE IN YOUR CHATS MUST ENTER THE SAME PHRASE.<br>
+      IT IS NOT SAVED OR SENT TO THE SERVER; SHARE IT SECURELY OUTSIDE THIS APP.
+    </div>
+    <input class="age-input" id="encryption-passphrase" type="password"
+           placeholder="Private passphrase" autocomplete="new-password"
+           spellcheck="false">
+    <div class="age-error" id="encryption-error" role="alert"></div>
+    <button class="btn-green" id="encryption-btn">CONTINUE</button>
   </div>
 </div>
 
@@ -661,7 +686,6 @@ const fb_storage = firebase.storage();
 // server config
 const HOST = "phase3test-gwl1.onrender.com";
 const WSS_URL = `wss://${HOST}/ws`;
-const SHARED_PASSPHRASE = "ChangeThisToAStrongPassphrase!"; // must match server
 
 // end to end encryption
 let AES_KEY = null;
@@ -1235,6 +1259,10 @@ const age_blocked = document.getElementById("age-blocked");
 const age_input = document.getElementById("age-input");
 const age_error = document.getElementById("age-error");
 const age_btn = document.getElementById("age-btn");
+const encryption_screen = document.getElementById("encryption-screen");
+const encryption_input = document.getElementById("encryption-passphrase");
+const encryption_error = document.getElementById("encryption-error");
+const encryption_btn = document.getElementById("encryption-btn");
 
 // DOB format
 age_input.addEventListener("input", () => {
@@ -1272,10 +1300,10 @@ function verify_age() {
     age_blocked.style.display = "flex";
     return;
   }
-  // over 18 auth
+  // Continue with encryption setup before opening a server connection.
   age_screen.style.display = "none";
-  auth_screen.style.display = "flex";
-  auth_input.focus();
+  encryption_screen.style.display = "flex";
+  encryption_input.focus();
 }
 
 function show_age_error(msg) {
@@ -1287,13 +1315,41 @@ function show_age_error(msg) {
   }, 2500);
 }
 
-// key
-(async () => {
-  AES_KEY = await derive_key(SHARED_PASSPHRASE);
-  auth_screen.style.display = "none";
-  age_screen.style.display = "flex";
-  connect();
-})();
+async function setup_encryption() {
+  if (encryption_btn.disabled) return;
+  const passphrase = encryption_input.value;
+  if (passphrase.length < 16) {
+    encryption_error.textContent = "USE A PASSPHRASE WITH AT LEAST 16 CHARACTERS.";
+    encryption_input.focus();
+    return;
+  }
+
+  encryption_btn.disabled = true;
+  encryption_input.disabled = true;
+  encryption_error.textContent = "";
+  try {
+    AES_KEY = await derive_key(passphrase);
+    encryption_input.value = "";
+    encryption_screen.style.display = "none";
+    auth_screen.style.display = "flex";
+    auth_input.focus();
+    connect();
+  } catch (error) {
+    console.error("Could not initialize chat encryption.", error);
+    encryption_error.textContent = "ENCRYPTION SETUP FAILED. USE HTTPS AND TRY AGAIN.";
+  } finally {
+    encryption_btn.disabled = false;
+    encryption_input.disabled = false;
+  }
+}
+
+encryption_btn.addEventListener("click", setup_encryption);
+encryption_input.addEventListener("keydown", e => {
+  if (e.key === "Enter") setup_encryption();
+});
+
+auth_screen.style.display = "none";
+age_screen.style.display = "flex";
 </script>
 </body>
 </html>
